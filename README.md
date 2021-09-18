@@ -7,5 +7,5 @@ A simple shell written in golang.
 - [x] `cd` command.
 - [x] `exit` command.
 - [x] Catch `ctrl+c` and `SIGTERM`.
-- [ ] Better argument parsing.
+- [x] Better argument parsing.
 - [ ] Customization through root files.

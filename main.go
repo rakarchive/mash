@@ -17,8 +17,8 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"strings"
 	"syscall"
+	"github.com/raklaptudirm/mash/parser"
 )
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		} else {
-			cmd, args := args(input)
+			cmd, args := parser.Parse(input)
 			if err := dispatch(cmd, args); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 			}
@@ -77,13 +77,4 @@ func execute(command string, args []string) error {
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
-}
-
-// Function args parses the arguments
-// of the provided commands. Improvement
-// is required.
-func args(input string) (string, []string) {
-	input = strings.TrimSuffix(input, "\r\n")
-	args := strings.Split(input, " ")
-	return args[0], args[1:]
 }
