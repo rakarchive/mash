@@ -14,11 +14,11 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/raklaptudirm/mash/parser"
 	"os"
 	"os/exec"
 	"os/signal"
 	"syscall"
-	"github.com/raklaptudirm/mash/parser"
 )
 
 func main() {
@@ -38,7 +38,7 @@ func main() {
 		} else {
 			cmd, args := parser.Parse(input)
 			if err := dispatch(cmd, args); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				fmt.Fprintln(os.Stderr, "mash: command "+cmd+" not found.")
 			}
 		}
 	}

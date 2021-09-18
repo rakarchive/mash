@@ -40,7 +40,7 @@ func Parse(input string) (string, []string) {
 // Function Args parses an argument string
 // into an argument slice.
 func Args(input string) []string {
-  length := len(input)
+	length := len(input)
 	current := 0
 	args := []string{}
 
@@ -76,10 +76,10 @@ func Args(input string) []string {
 				str = ""
 			}
 		case '\\':
-			if current == length - 1 {
+			if current == length-1 {
 				break
 			}
-	    str += escape(input[current+1])
+			str += escape(input[current+1])
 			current++
 		default:
 			str += string(char)
