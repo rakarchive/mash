@@ -14,11 +14,13 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/raklaptudirm/mash/parser"
 	"os"
 	"os/exec"
 	"os/signal"
 	"syscall"
+
+	"github.com/raklaptudirm/mash/builtin"
+	"github.com/raklaptudirm/mash/parser"
 )
 
 func main() {
@@ -38,7 +40,7 @@ func main() {
 		} else {
 			cmd, args := parser.Parse(input)
 			if err := dispatch(cmd, args); err != nil {
-				fmt.Fprintln(os.Stderr, "mash: command "+cmd+" not found.")
+				fmt.Fprintln(os.Stderr, "mash: command "+cmd+" not found")
 			}
 		}
 	}
@@ -48,21 +50,10 @@ func main() {
 // a command is a shell command or an
 // exe file, and executes it appropriately.
 func dispatch(command string, args []string) error {
-	switch command {
-	case "cd":
-		var path string
-		if len(args) < 1 {
-			path, _ = os.UserHomeDir()
-		} else {
-			path = args[0]
-		}
-		return os.Chdir(path)
-	case "exit":
-		os.Exit(0)
-	default:
-		return execute(command, args)
+	if builtin.IsCmd(command) {
+		return builtin.Run(command, args)
 	}
-	return nil
+	return execute(command, args)
 }
 
 // Function execute command handles
