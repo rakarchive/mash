@@ -19,7 +19,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/raklaptudirm/mash/builtin"
+	"github.com/raklaptudirm/mash/commands"
 	"github.com/raklaptudirm/mash/parser"
 )
 
@@ -50,8 +50,8 @@ func main() {
 // a command is a shell command or an
 // exe file, and executes it appropriately.
 func dispatch(command string, args []string) error {
-	if builtin.IsCmd(command) {
-		return builtin.Run(command, args)
+	if commands.IsBuiltin(command) {
+		return commands.Run(command, args)
 	}
 	return execute(command, args)
 }
