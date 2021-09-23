@@ -8,11 +8,12 @@
 // - cd command
 // - exit command
 // - run executable files
-//
+
 package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -25,47 +26,31 @@ import (
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
+
 	// Catch ctrl+c and SIGTERM events
 	ctrlC := make(chan os.Signal, 1)
 	signal.Notify(ctrlC, os.Interrupt)
 	signal.Notify(ctrlC, syscall.SIGTERM)
+
 	// Command loop
 	for {
 		cwd, _ := os.Getwd()
+
 		// Prompt
 		fmt.Printf("\u001b[32m%v\u001b[0m\n$ ", cwd)
+
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		} else {
 			cmd, args := parser.Parse(input)
-			if err := dispatch(cmd, args); err != nil {
-				fmt.Fprintln(os.Stderr, "mash: command "+cmd+" not found")
+			if err := commands.Dispatch(cmd, args); err != nil {
+				if errors.Is(err, exec.ErrNotFound) {
+					fmt.Fprintln(os.Stderr, "mash: "+cmd+": command not found")
+				} else {
+					fmt.Println(err)
+				}
 			}
 		}
 	}
-}
-
-// Function dispatch determines wether
-// a command is a shell command or an
-// exe file, and executes it appropriately.
-func dispatch(command string, args []string) error {
-	if commands.IsBuiltin(command) {
-		return commands.Run(command, args)
-	}
-	return execute(command, args)
-}
-
-// Function execute command handles
-// exe file executions requested by
-// dispatch.
-func execute(command string, args []string) error {
-	cmd := exec.Command(command, args...)
-
-	// Set command streams to shell default
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
 }
