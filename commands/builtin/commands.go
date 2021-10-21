@@ -5,9 +5,20 @@
 
 package builtin
 
+import "fmt"
+
+type ExitError struct {
+	ErrorCode int
+}
+
+func (err *ExitError) Error() string {
+	return fmt.Sprintf("exit status %v", err.ErrorCode)
+}
+
 // Map commands maps the in-built command
 // name to the respective go function.
 var Commands = map[string]func([]string) error{
-	"cd":   cd,
-	"exit": exit,
+	"cd":    cd,
+	"exit":  exit,
+	"clear": clear,
 }

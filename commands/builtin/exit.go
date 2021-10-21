@@ -6,7 +6,7 @@
 package builtin
 
 import (
-	"errors"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -21,12 +21,14 @@ func exit(args []string) error {
 		os.Exit(0)
 	}
 	if length > 1 {
-		return errors.New("exit: too many arguments")
+		fmt.Fprintln(os.Stderr, "exit: too many arguments")
+		return &ExitError{1}
 	}
 	if num, err := strconv.Atoi(args[0]); err == nil {
 		os.Exit(num)
 	} else {
-		return errors.New("exit: expected numeric argument")
+		fmt.Fprintln(os.Stderr, "exit: expected numeric argument")
+		return &ExitError{1}
 	}
 	os.Exit(0)
 	return nil

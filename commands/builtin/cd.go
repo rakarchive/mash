@@ -6,7 +6,7 @@
 package builtin
 
 import (
-	"errors"
+	"fmt"
 	"os"
 )
 
@@ -28,7 +28,8 @@ func cd(args []string) error {
 	} else if length == 1 {
 		path = args[0]
 	} else {
-		return errors.New("mash: cd: too many arguments")
+		fmt.Fprintln(os.Stderr, "mash: cd: too many arguments")
+		return &ExitError{1}
 	}
 	return os.Chdir(path)
 }
