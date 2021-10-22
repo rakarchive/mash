@@ -3,6 +3,10 @@
 // Copyright (c) 2021 Rak Laptudirm.
 // Licensed under the MIT license.
 
+// This whole thing needs to be a hell lot
+// more powerful to do the stuff I need it
+// to do later in this journey.
+
 // Package parser provides functions to
 // parse the user command input into
 // command and arguments.
@@ -33,18 +37,16 @@ import (
 // and the argument slice.
 func Parse(input string) (string, []string) {
 	input = strings.Trim(input, " \t\n\r")
-	cmdTill := strings.Index(input, " ")
-	if cmdTill == -1 {
-		return input, []string{}
+	words := Words(input)
+	if len(words) == 0 {
+		return "", []string{}
 	}
-	cmd := input[:cmdTill]
-	args := Args(input[cmdTill:])
-	return cmd, args
+	return words[0], words[1:]
 }
 
 // Function Args parses an argument string
 // input into an argument slice.
-func Args(input string) []string {
+func Words(input string) []string {
 	length := len(input)
 	current := 0
 	args := []string{}
@@ -67,7 +69,7 @@ func Args(input string) []string {
 			if inSingleQuote {
 				inSingleQuote = false
 			} else if inDoubleQuote {
-				str += "\""
+				str += "'"
 			} else {
 				inSingleQuote = true
 			}

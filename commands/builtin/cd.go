@@ -14,7 +14,7 @@ import (
 // directory of the shell according to the
 // arguments args, which should have 0-1
 // arguments, which should be the new
-// working directory (defaults to homepath)
+// working directory (defaults to homepath).
 func cd(args []string) error {
 	var path string
 	length := len(args)
@@ -31,5 +31,12 @@ func cd(args []string) error {
 		fmt.Fprintln(os.Stderr, "mash: cd: too many arguments")
 		return &ExitError{1}
 	}
-	return os.Chdir(path)
+
+	err := os.Chdir(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "mash: cd: %v: no such file or directory\n", path)
+		return &ExitError{1}
+	}
+
+	return nil
 }

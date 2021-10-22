@@ -13,44 +13,47 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"os/signal"
 	"syscall"
 
-	"github.com/raklaptudirm/mash/commands"
-	"github.com/raklaptudirm/mash/parser"
+	"github.com/raklaptudirm/mash/vm"
 )
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
-	// Catch ctrl+c and SIGTERM events
-	ctrlC := make(chan os.Signal, 1)
-	signal.Notify(ctrlC, os.Interrupt)
-	signal.Notify(ctrlC, syscall.SIGTERM)
+	// Catch ctrl+c and SIGTERM events so as not to
+	// interrupt the shell input, unlike normal
+	// processes.
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+	signal.Notify(interrupt, syscall.SIGTERM)
 
-	// Command loop
+	// Infinite command loop:
+	// - Print prompt
+	// - Read input
+	// - Parse and Run input
 	for {
-		cwd, _ := os.Getwd()
+		cwd, err := os.Getwd()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			break
+		}
 
-		// Prompt
-		fmt.Printf("\u001b[32m%v\u001b[0m\n$ ", cwd)
+		// The shell prompt, currently fixed as:
+		//
+		//     <current working directory>
+		//     ψ | <- cursor
+		fmt.Printf("\u001b[32m%v\u001b[0m\nψ ", cwd)
 
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-		} else {
-			cmd, args := parser.Parse(input)
-			if err := commands.Dispatch(cmd, args); err != nil {
-				if errors.Is(err, exec.ErrNotFound) {
-					fmt.Fprintln(os.Stderr, "mash: "+cmd+": command not found")
-				} else {
-					fmt.Println(err)
-				}
-			}
+			break
 		}
+
+		vm.Run(input)
 	}
 }
