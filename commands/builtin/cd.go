@@ -8,6 +8,8 @@ package builtin
 import (
 	"fmt"
 	"os"
+
+	"github.com/raklaptudirm/mash/commands"
 )
 
 // Function cd changes the current working
@@ -29,13 +31,13 @@ func cd(args []string) error {
 		path = args[0]
 	} else {
 		fmt.Fprintln(os.Stderr, "mash: cd: too many arguments")
-		return &ExitError{1}
+		return &commands.ExitError{Code: 1}
 	}
 
 	err := os.Chdir(path)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "mash: cd: %v: no such file or directory\n", path)
-		return &ExitError{1}
+		return &commands.ExitError{Code: 1}
 	}
 
 	return nil

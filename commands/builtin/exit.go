@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/raklaptudirm/mash/commands"
 )
 
 // Function exit terminates the shell process
@@ -17,18 +19,18 @@ import (
 // be the exit code (default 0).
 func exit(args []string) error {
 	length := len(args)
-	if length < 1 {
+	switch {
+	case length < 1:
 		os.Exit(0)
-	}
-	if length > 1 {
+	case length > 1:
 		fmt.Fprintln(os.Stderr, "exit: too many arguments")
-		return &ExitError{1}
-	}
-	if num, err := strconv.Atoi(args[0]); err == nil {
-		os.Exit(num)
-	} else {
+		return &commands.ExitError{Code: 1}
+	default:
+		if num, err := strconv.Atoi(args[0]); err == nil {
+			os.Exit(num)
+		}
 		fmt.Fprintln(os.Stderr, "exit: expected numeric argument")
-		return &ExitError{1}
+		return &commands.ExitError{Code: 1}
 	}
 	os.Exit(0)
 	return nil

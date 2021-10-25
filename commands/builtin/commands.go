@@ -3,25 +3,19 @@
 // Copyright (c) 2021 Rak Laptudirm.
 // Licensed under the MIT license.
 
+// Package builtin implements functions which
+// provide the functionality for normal builtin
+// commands.
+
 package builtin
 
-import "fmt"
+import "github.com/raklaptudirm/mash/commands"
 
-// An ExitError is the error returned by
-// builtin commands in case of a non-zero
-// exit value.
-type ExitError struct {
-	ErrorCode int
-}
-
-func (err *ExitError) Error() string {
-	return fmt.Sprintf("exit status %v", err.ErrorCode)
-}
-
-// Map commands maps the in-built command
-// name to the respective go function.
-var Commands = map[string]func([]string) error{
+// CommandMap Commands maps the normal builtin
+// command functions to their names.
+var Commands = commands.CommandMap{
 	"cd":    cd,
 	"exit":  exit,
 	"clear": clear,
+	"echo":  echo,
 }

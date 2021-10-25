@@ -4,10 +4,6 @@
 // Licensed under the MIT license.
 
 // mash is a simple shell written in go.
-// Features:
-// - cd command
-// - exit command
-// - run executable files
 
 package main
 
@@ -18,7 +14,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/raklaptudirm/mash/vm"
+	"github.com/raklaptudirm/mash/shell"
 )
 
 func main() {
@@ -42,10 +38,7 @@ func main() {
 			break
 		}
 
-		// The shell prompt, currently fixed as:
-		//
-		//     <current working directory>
-		//     ψ | <- cursor
+		// Prompt
 		fmt.Printf("\u001b[32m%v\u001b[0m\nψ ", cwd)
 
 		input, err := reader.ReadString('\n')
@@ -54,6 +47,6 @@ func main() {
 			break
 		}
 
-		vm.Run(input)
+		shell.Run(input)
 	}
 }

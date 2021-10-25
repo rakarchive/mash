@@ -6,7 +6,7 @@
 // Package vm provides functions to run an unparsed
 // command string by parsing and dispatching it.
 
-package vm
+package shell
 
 import (
 	"errors"
@@ -14,8 +14,9 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/raklaptudirm/mash/commands"
+	"github.com/raklaptudirm/mash/commands/special"
 	"github.com/raklaptudirm/mash/parser"
+	"github.com/raklaptudirm/mash/runners"
 )
 
 // Function Run parses a given command string,
@@ -23,7 +24,7 @@ import (
 // messages depending on the returned error.
 func Run(command string) {
 	cmd, args := parser.Parse(command)
-	err := commands.Dispatch(cmd, args)
+	err := dispatch(cmd, args)
 
 	// report errors from Dispatch
 	switch {
@@ -32,4 +33,21 @@ func Run(command string) {
 	case err != nil:
 		fmt.Println(err)
 	}
+}
+
+// Function discpatch dispatches the execution
+// of the provided command, depending on the
+// type of the command.
+func dispatch(command string, args []string) error {
+	function, exists := special.Commands[command]
+	if exists {
+		return function(args)
+	}
+
+	err := runners.Builtin(command, args)
+	if _, is := err.(*runners.NotBuiltinCmd); !is {
+		return err
+	}
+
+	return runners.External(command, args)
 }
