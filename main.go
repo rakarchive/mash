@@ -4,68 +4,59 @@
 // Licensed under the MIT license.
 
 // mash is a simple shell written in go.
-// Features:
-// - cd command
-// - exit command
-// - run executable files
+//
+// Usage:
+//
+//  mash
+//  mash [ command ]
+//
+// "mash" starts the shell process in the current
+// terminal. Currently, customization of any of the
+// features of mash is unavailable, but will be added
+// soon.
+//
+// "mash command" runs the provided command and exits.
+//
+// The shell consists of a command loop, which can
+// take user input and execute the commands accordingly.
+//
+// Mash provides support for both builtin and external
+// commands, both of which are used the same way.
+//
+// The shell reports the exit code of all types of
+// commands in the case that it is non-zero. The shell
+// goes into another iteration of the command loop in
+// the case of such errors, and only exits in case of
+// serious errors like unable to read input or failing
+// to fetch the working directory.
+//
+// Process exit signals like ^C and SIGTERM are caught
+// and the shell does not exit as a result of them.
 //
 package main
 
 import (
-	"bufio"
-	"fmt"
 	"os"
-	"os/exec"
 	"os/signal"
 	"syscall"
 
-	"github.com/raklaptudirm/mash/builtin"
-	"github.com/raklaptudirm/mash/parser"
+	"github.com/raklaptudirm/mash/shell"
 )
 
 func main() {
-	reader := bufio.NewReader(os.Stdin)
-	// Catch ctrl+c and SIGTERM events
-	ctrlC := make(chan os.Signal, 1)
-	signal.Notify(ctrlC, os.Interrupt)
-	signal.Notify(ctrlC, syscall.SIGTERM)
-	// Command loop
-	for {
-		cwd, _ := os.Getwd()
-		// Prompt
-		fmt.Printf("\u001b[32m%v\u001b[0m\n$ ", cwd)
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-		} else {
-			cmd, args := parser.Parse(input)
-			if err := dispatch(cmd, args); err != nil {
-				fmt.Fprintln(os.Stderr, "mash: command "+cmd+" not found")
-			}
-		}
+	// Catch ctrl+c and SIGTERM events so as not to
+	// interrupt the shell input, unlike normal
+	// processes.
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+	signal.Notify(interrupt, syscall.SIGTERM)
+
+	args := os.Args[1:]
+	if len(args) < 1 {
+		// Start shell instance if no args provided.
+		shell.Start()
+	} else {
+		// If an argument is provided, run it as a command.
+		shell.Run(args[0])
 	}
-}
-
-// Function dispatch determines wether
-// a command is a shell command or an
-// exe file, and executes it appropriately.
-func dispatch(command string, args []string) error {
-	if builtin.IsCmd(command) {
-		return builtin.Run(command, args)
-	}
-	return execute(command, args)
-}
-
-// Function execute command handles
-// exe file executions requested by
-// dispatch.
-func execute(command string, args []string) error {
-	cmd := exec.Command(command, args...)
-
-	// Set command streams to shell default
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
 }
