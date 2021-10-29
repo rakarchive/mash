@@ -6,7 +6,7 @@
 // Package commands provides types used by
 // the implementations of different types
 // of builtin commands.
-
+//
 package commands
 
 import "fmt"
@@ -15,7 +15,7 @@ import "fmt"
 // builtin commands in case of a non-zero
 // exit value.
 type ExitError struct {
-	Code int
+	Code int // Exit code returned by process
 }
 
 func (err *ExitError) Error() string {

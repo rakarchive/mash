@@ -13,12 +13,11 @@ import (
 	"github.com/raklaptudirm/mash/runners"
 )
 
-// Function builtin implements the special function
-// builtin that is used to run only normal builtin
-// commands.
+// Function builtin implements the special function builtin that
+// is used to run only normal builtin commands.
 //
-// The first argument is used as the builtin command
-// name and the rest are the proper args.
+// The first argument is used as the builtin command name and the
+// rest are the proper args.
 func builtin(args []string) error {
 	length := len(args)
 	switch {

@@ -13,11 +13,11 @@ import (
 	"github.com/raklaptudirm/mash/runners"
 )
 
-// Function local implements the special function
-// local that is used to run only external commands.
+// Function local implements the special function local that is
+// used to run only external commands.
 //
-// The first argument is used as the external command
-// while the rest are used as the proper args.
+// The first argument is used as the external command while the
+// rest are used as the proper args.
 func local(args []string) error {
 	length := len(args)
 	switch {

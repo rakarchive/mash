@@ -10,9 +10,8 @@ import (
 	"os/exec"
 )
 
-// Function External runs the provided external
-// command, and returns the error returned by
-// the cmd.Run() call.
+// External runs the provided external command, and returns the
+// error returned by the cmd.Run() call.
 func External(command string, args []string) error {
 	cmd := exec.Command(command, args...)
 

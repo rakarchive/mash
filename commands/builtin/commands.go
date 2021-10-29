@@ -6,13 +6,13 @@
 // Package builtin implements functions which
 // provide the functionality for normal builtin
 // commands.
-
+//
 package builtin
 
 import "github.com/raklaptudirm/mash/commands"
 
-// CommandMap Commands maps the normal builtin
-// command functions to their names.
+// Commands maps the normal builtin command functions
+// to their names.
 var Commands = commands.CommandMap{
 	"cd":    cd,
 	"exit":  exit,

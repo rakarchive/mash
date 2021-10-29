@@ -12,8 +12,9 @@ import (
 	"github.com/raklaptudirm/mash/commands"
 )
 
-// Clear command is used to clear the terminal,
-// including scroll-back (for now).
+// clear command is used to clear the terminal, including
+// scroll-back (for now). Scroll-back preservation will be
+// added later.
 func clear(args []string) error {
 	if len(args) > 0 {
 		fmt.Fprintln(os.Stderr, "clear: too many arguments")

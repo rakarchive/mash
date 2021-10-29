@@ -3,9 +3,11 @@
 // Copyright (c) 2021 Rak Laptudirm.
 // Licensed under the MIT license.
 
-// Package vm provides functions to run an unparsed
-// command string by parsing and dispatching it.
-
+// Package shell provides an interface for wrapping
+// the tasks of parsing, execution and error
+// reporting for simpler and steadier running of
+// the tasks.
+//
 package shell
 
 import (
@@ -19,9 +21,13 @@ import (
 	"github.com/raklaptudirm/mash/runners"
 )
 
-// Function Run parses a given command string,
-// sends it to the dispatcher, and prints error
-// messages depending on the returned error.
+// Run wraps the tasks of parsing a command string, executing the
+// command with the provided args, and reporting errors, if any,
+// from the execution.
+//
+// The errors are classified according to their type, and for some
+// types of errors, Run prints them using a custom format. For other
+// types of errors, their respective Error method is used for printing.
 func Run(command string) {
 	cmd, args := parser.Parse(command)
 	err := dispatch(cmd, args)
@@ -35,9 +41,10 @@ func Run(command string) {
 	}
 }
 
-// Function discpatch dispatches the execution
-// of the provided command, depending on the
-// type of the command.
+// dispatch searches for the provided command in the builtin command
+// maps, and if found, executes the command function and reports any
+// returned error. Otherwise, it runs the command as an external command
+// and returns any raised error.
 func dispatch(command string, args []string) error {
 	function, exists := special.Commands[command]
 	if exists {
