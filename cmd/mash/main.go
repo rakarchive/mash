@@ -40,7 +40,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/raklaptudirm/mash/shell"
+	"github.com/raklaptudirm/mash/pkg/shell"
 )
 
 func main() {

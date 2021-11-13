@@ -16,9 +16,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/raklaptudirm/mash/commands/special"
-	"github.com/raklaptudirm/mash/parser"
-	"github.com/raklaptudirm/mash/runners"
+	"github.com/raklaptudirm/mash/pkg/command"
+	"github.com/raklaptudirm/mash/pkg/parser"
 )
 
 // Run wraps the tasks of parsing a command string, executing the
@@ -29,13 +28,16 @@ import (
 // types of errors, Run prints them using a custom format. For other
 // types of errors, their respective Error method is used for printing.
 func Run(command string) {
-	cmd, args := parser.Parse(command)
-	err := dispatch(cmd, args)
+	cmd, err := parser.Parse(command)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = dispatch(cmd)
 
 	// report errors from Dispatch
 	switch {
 	case errors.Is(err, exec.ErrNotFound):
-		fmt.Fprintln(os.Stderr, "mash: "+cmd+": command not found")
+		fmt.Fprintf(os.Stderr, "mash: %v: command not found", cmd)
 	case err != nil:
 		fmt.Println(err)
 	}
@@ -45,16 +47,6 @@ func Run(command string) {
 // maps, and if found, executes the command function and reports any
 // returned error. Otherwise, it runs the command as an external command
 // and returns any raised error.
-func dispatch(command string, args []string) error {
-	function, exists := special.Commands[command]
-	if exists {
-		return function(args)
-	}
-
-	err := runners.Builtin(command, args)
-	if _, is := err.(*runners.NotBuiltinCmd); !is {
-		return err
-	}
-
-	return runners.External(command, args)
+func dispatch(cmd command.Command) error {
+	return cmd.Execute()
 }

@@ -12,7 +12,7 @@ package runners
 import (
 	"fmt"
 
-	"github.com/raklaptudirm/mash/commands/builtin"
+	"github.com/raklaptudirm/mash/pkg/command/builtin"
 )
 
 // A NotBuiltinCmd is the type of error returned
@@ -29,10 +29,10 @@ func (e *NotBuiltinCmd) Error() string {
 // Builtin runs the provided builtin command, or returns a
 // NotBuiltinCmd error if it is not one.
 func Builtin(command string, args []string) error {
-	function, exists := builtin.Commands[command]
+	cmd, exists := builtin.Commands[command]
 	if !exists {
 		return &NotBuiltinCmd{command}
 	}
-
-	return function(args)
+	cmd.Args = args
+	return cmd.Execute()
 }

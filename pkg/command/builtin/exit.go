@@ -10,7 +10,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/raklaptudirm/mash/commands"
+	"github.com/raklaptudirm/mash/pkg/command"
 )
 
 // Function exit terminates the shell process with a return
@@ -24,13 +24,13 @@ func exit(args []string) error {
 		os.Exit(0)
 	case length > 1:
 		fmt.Fprintln(os.Stderr, "exit: too many arguments")
-		return &commands.ExitError{Code: 1}
+		return &command.ExitError{Code: 1}
 	default:
 		if num, err := strconv.Atoi(args[0]); err == nil {
 			os.Exit(num)
 		}
 		fmt.Fprintln(os.Stderr, "exit: expected numeric argument")
-		return &commands.ExitError{Code: 1}
+		return &command.ExitError{Code: 1}
 	}
 
 	os.Exit(0)

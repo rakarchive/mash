@@ -7,7 +7,7 @@
 // the implementations of different types
 // of builtin commands.
 //
-package commands
+package command
 
 import "fmt"
 

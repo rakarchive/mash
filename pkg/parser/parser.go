@@ -26,8 +26,14 @@
 package parser
 
 import (
+	"fmt"
 	"strings"
+
+	"github.com/raklaptudirm/mash/pkg/command"
+	"github.com/raklaptudirm/mash/pkg/command/builtin"
 )
+
+var NoCommandError = fmt.Errorf("No commands provided")
 
 // Function Parse accepts user command as
 // input and separates the command string
@@ -35,13 +41,21 @@ import (
 // dispatches the argument string to the
 // Args function. It returns the command
 // and the argument slice.
-func Parse(input string) (string, []string) {
+func Parse(input string) (command.Command, error) {
 	input = strings.Trim(input, " \t\n\r")
 	words := Words(input)
 	if len(words) == 0 {
-		return "", []string{}
+		return command.Command{}, NoCommandError
 	}
-	return words[0], words[1:]
+	cmd, exists := builtin.Commands[words[0]]
+	if !exists {
+		return command.Command{
+			Name: words[0],
+			Args: words[1:],
+		}, nil
+	}
+	cmd.Args = words[1:]
+	return cmd, nil
 }
 
 // Function Args parses an argument string

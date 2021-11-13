@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/raklaptudirm/mash/commands"
+	"github.com/raklaptudirm/mash/pkg/command"
 )
 
 // cd changes the current working directory of the shell
@@ -30,7 +30,7 @@ func cd(args []string) error {
 		path = home
 	case length > 1:
 		fmt.Fprintln(os.Stderr, "mash: cd: too many arguments")
-		return &commands.ExitError{Code: 1}
+		return &command.ExitError{Code: 1}
 	default:
 		path = args[0]
 	}
@@ -38,7 +38,7 @@ func cd(args []string) error {
 	err := os.Chdir(path)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "mash: cd: %v: no such file or directory\n", path)
-		return &commands.ExitError{Code: 1}
+		return &command.ExitError{Code: 1}
 	}
 
 	return nil
