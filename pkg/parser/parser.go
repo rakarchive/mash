@@ -41,15 +41,15 @@ var NoCommandError = fmt.Errorf("No commands provided")
 // dispatches the argument string to the
 // Args function. It returns the command
 // and the argument slice.
-func Parse(input string) (command.Command, error) {
+func Parse(input string) (command.SimpleCommand, error) {
 	input = strings.Trim(input, " \t\n\r")
 	words := Words(input)
 	if len(words) == 0 {
-		return command.Command{}, NoCommandError
+		return command.SimpleCommand{}, NoCommandError
 	}
 	cmd, exists := builtin.Commands[words[0]]
 	if !exists {
-		return command.Command{
+		return command.SimpleCommand{
 			Name: words[0],
 			Args: words[1:],
 		}, nil
@@ -61,6 +61,9 @@ func Parse(input string) (command.Command, error) {
 // Function Args parses an argument string
 // input into an argument slice.
 func Words(input string) []string {
+	// remove leading and trailing whitespaces
+	input = strings.TrimSpace(input)
+
 	length := len(input)
 	current := 0
 	args := []string{}

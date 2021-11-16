@@ -5,7 +5,17 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/raklaptudirm/mash/pkg/command"
 )
+
+type Runtime struct {
+	Input     string
+	Commands  []command.SimpleCommand
+	SysWriter io.Writer
+	SysReader io.Reader
+	SysErr    io.Writer
+}
 
 // Start initiates the shell command loop, after initializing the
 // reader. In the command loop, the prompt is printed, command is

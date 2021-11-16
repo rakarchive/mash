@@ -2,11 +2,22 @@ package command
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 )
 
 type Command struct {
+	SimpleCommands []SimpleCommand
+	// the following will make it easy to redirect using pipe and > or <
+	Output               io.Writer
+	Input                io.Reader
+	ErrOutput            io.Writer
+	CurrentCommand       *Command
+	CurrentSimpleCommand *SimpleCommand
+}
+
+type SimpleCommand struct {
 	Name    string
 	Args    []string
 	Builtin Builtin
@@ -14,11 +25,11 @@ type Command struct {
 
 type Builtin func([]string) error
 
-func (c *Command) String() string {
+func (c *SimpleCommand) String() string {
 	return c.Name
 }
 
-func (c *Command) Execute() error {
+func (c *SimpleCommand) Execute() error {
 	if c.Builtin != nil {
 		err := c.Run()
 		if err != nil {
@@ -35,7 +46,7 @@ func (c *Command) Execute() error {
 	return cmd.Run()
 }
 
-func (c *Command) Run() error {
+func (c *SimpleCommand) Run() error {
 	if c.Builtin == nil {
 		return fmt.Errorf("Not a builtin command, check that your parser is working properly.")
 	}

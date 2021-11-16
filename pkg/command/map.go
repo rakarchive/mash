@@ -8,4 +8,4 @@ package command
 // A CommandMap is the map type used to
 // connect builtin command functions to
 // their names.
-type CommandMap map[string]Command
+type CommandMap map[string]SimpleCommand

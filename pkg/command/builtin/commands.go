@@ -14,22 +14,22 @@ import "github.com/raklaptudirm/mash/pkg/command"
 // Commands maps the normal builtin command functions
 // to their names.
 var Commands = command.CommandMap{
-	"cd": command.Command{
+	"cd": command.SimpleCommand{
 		Name:    "cd",
 		Args:    []string{},
 		Builtin: cd,
 	},
-	"exit": command.Command{
+	"exit": command.SimpleCommand{
 		Name:    "exit",
 		Args:    []string{},
 		Builtin: exit,
 	},
-	"clear": command.Command{
+	"clear": command.SimpleCommand{
 		Name:    "clear",
 		Args:    []string{},
-		Builtin: cd,
+		Builtin: clear,
 	},
-	"echo": command.Command{
+	"echo": command.SimpleCommand{
 		Name:    "echo",
 		Args:    []string{},
 		Builtin: echo,

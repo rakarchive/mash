@@ -47,6 +47,6 @@ func Run(command string) {
 // maps, and if found, executes the command function and reports any
 // returned error. Otherwise, it runs the command as an external command
 // and returns any raised error.
-func dispatch(cmd command.Command) error {
+func dispatch(cmd command.SimpleCommand) error {
 	return cmd.Execute()
 }
