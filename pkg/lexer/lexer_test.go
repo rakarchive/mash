@@ -16,8 +16,6 @@ func TestLexerSimpleInputs(t *testing.T) {
 		{">", lexer.GREATER, ">"},
 		{">>", lexer.GREATGREAT, ">>"},
 		{"<", lexer.LESS, "<"},
-		{"\"", lexer.DOUBLEQUOTE, "\""},
-		{"'", lexer.SINGLEQUOTE, "'"},
 		{">&", lexer.GREATAMPERSAND, ">&"},
 		{"+", lexer.ILLEGAL, "+"},
 		{";", lexer.SEMICOLON, ";"},
@@ -29,16 +27,19 @@ func TestLexerSimpleInputs(t *testing.T) {
 		{"|", lexer.PIPE, "|"},
 		{"&", lexer.AMPERSAND, "&"},
 		{"haha", lexer.IDENT, "haha"},
-		{"`", lexer.BACKQUOTE, "`"},
+		{"`", lexer.ILLEGAL, "`"},
+		{"'", lexer.ILLEGAL, "'"},
+		{"\"", lexer.ILLEGAL, "\""},
 		{"# \n", lexer.COMMENT, "# \n"},
-		{"'", lexer.SINGLEQUOTE, "'"},
-		{"\"", lexer.DOUBLEQUOTE, "\""},
+		{"`haha`", lexer.BACKQUOTE, "`haha`"},
+		{"'haha'", lexer.SINGLEQUOTE, "'haha'"},
+		{"\"haha\"", lexer.DOUBLEQUOTE, "\"haha\""},
 	}
 	for _, test := range tests {
 		l := lexer.Lex(test.input)
 		for c := range l.Tokens {
 			if c.Type != test.expectedType {
-				t.Errorf("Expected type %q, got %q", test.expectedType, c.Type)
+				t.Errorf("Expected type %v, got %v", test.expectedType, c.Type)
 			}
 			if c.Val != test.expectedValue {
 				t.Errorf("Expected value %q, got %q", test.expectedValue, c.Val)

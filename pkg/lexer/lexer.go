@@ -166,7 +166,7 @@ func lexSingleQuote(l *Lexer) stateFn {
 			break
 		}
 		if r == -1 {
-			break
+			return l.errorf("unexpected EOF")
 		}
 	}
 	l.emit(SINGLEQUOTE)
@@ -180,7 +180,7 @@ func lexDoubleQuote(l *Lexer) stateFn {
 			break
 		}
 		if r == -1 {
-			break
+			return l.errorf("unexpected EOF")
 		}
 	}
 	l.emit(DOUBLEQUOTE)
@@ -194,7 +194,7 @@ func lexBackQuote(l *Lexer) stateFn {
 			break
 		}
 		if r == -1 {
-			break
+			return l.errorf("unexpected EOF")
 		}
 	}
 	l.emit(BACKQUOTE)
