@@ -139,11 +139,9 @@ func lexCommand(l *Lexer) stateFn {
 		return lexDoubleQuote
 	case r == '`':
 		return lexBackQuote
-	case r == '$':
-		return lexVariable
 	case r == '#':
 		return lexComment
-	case isAlphaNumeric(r):
+	case isIdentable(r):
 		l.backup()
 		return lexIdent
 	case r == -1:
@@ -154,8 +152,15 @@ func lexCommand(l *Lexer) stateFn {
 	return lexCommand
 }
 
+// isIdentable reports whether r is an identifier character.
+// Examples of IDENT tokens are:
+// $HOME, ls, echo, foo, bar, _, _foo, _bar, _0, _foo_bar, -foo, -0, -foo-bar
+func isIdentable(r rune) bool {
+	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r) || r == '$' || r == '-'
+}
+
 func isAlphaNumeric(r rune) bool {
-	return r == '_' || r == '-' || r == '.' || unicode.IsLetter(r) || unicode.IsDigit(r)
+	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)
 }
 
 func (l *Lexer) errorf(format string, args ...interface{}) stateFn {
@@ -219,17 +224,6 @@ func lexBackQuote(l *Lexer) stateFn {
 		}
 	}
 	l.emit(BACKQUOTE)
-	return lexCommand
-}
-
-func lexVariable(l *Lexer) stateFn {
-	for {
-		r := l.next()
-		if r == ' ' || r == '\t' || r == '\n' || r == '\r' || r == '|' || r == '&' || r == ';' || r == '<' || r == '>' || r == '"' || r == '\'' || r == '`' || r == '$' || r == '#' || r == -1 {
-			break
-		}
-	}
-	l.emit(IDENT)
 	return lexCommand
 }
 
