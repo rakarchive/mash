@@ -28,11 +28,14 @@ const (
 	EOF
 )
 
+const eof rune = -1
+
 type Token struct {
 	Type TokenType
 	Val  string
 	Line int
 	Pos  int
+	Col  int
 }
 
 // grammar
@@ -45,13 +48,14 @@ type Token struct {
 // cmd line -> pipe list io modifiers background optional NEWLINE | NEWLINE | ILLEGAL recovery.
 
 type Lexer struct {
-	input     string // input string
-	start     int    // start position of current token
-	pos       int    // current position in input
-	width     int    // width of the last rune read
-	Line      int    // +1 after each newline
-	StartLine int    // start line of current token
-	Tokens    chan Token
+	input   string // input string
+	start   int    // start position of current token
+	pos     int    // current position in input
+	width   int    // width of the last rune read
+	line    int    // +1 after each newline
+	col     int    // column number of current token
+	prevCol []int  // column number of previous token
+	Tokens  chan Token
 }
 
 func Lex(input string) *Lexer {
@@ -71,20 +75,23 @@ func (l *Lexer) run() {
 }
 
 func (l *Lexer) emit(t TokenType) {
-	l.Tokens <- Token{t, l.input[l.start:l.pos], l.Line, l.pos}
+	l.Tokens <- Token{t, l.input[l.start:l.pos], l.line, l.pos, l.col}
 	l.start = l.pos
 }
 
 func (l *Lexer) next() rune {
 	if l.pos >= len(l.input) {
 		l.width = 0
-		return -1 // EOF
+		return eof
 	}
 	r, w := utf8.DecodeRuneInString(l.input[l.pos:])
 	l.width = w
+	l.prevCol = append(l.prevCol, l.col)
+	l.col += l.width
 	l.pos += l.width
 	if r == '\n' {
-		l.Line++
+		l.line++
+		l.col = 0
 	}
 	return r
 }
@@ -97,9 +104,12 @@ func (l *Lexer) peek() rune {
 
 func (l *Lexer) backup() {
 	l.pos -= l.width
+	l.col -= l.width
 	// account for newline
 	if l.width == 1 && l.input[l.pos] == '\n' {
-		l.Line--
+		l.line--
+		l.col = l.prevCol[len(l.prevCol)-1]
+		l.prevCol = l.prevCol[:len(l.prevCol)-1]
 	}
 }
 

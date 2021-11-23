@@ -56,23 +56,24 @@ func TestLexerMultiTokenInput(t *testing.T) {
 		expectedValue string
 		expectedLine  int
 		expectedPos   int
+		expectedCol   int
 	}{
-		{lexer.SEMICOLON, ";", 0, 1},
-		{lexer.GREATER, ">", 0, 3},
-		{lexer.LESS, "<", 0, 5},
-		{lexer.GREATGREAT, ">>", 0, 8},
-		{lexer.GREATAMPERSAND, ">&", 0, 11},
-		{lexer.LESSAMPERSAND, "<&", 0, 14},
-		{lexer.PIPE, "|", 0, 16},
-		{lexer.AMPERSAND, "&", 0, 18},
-		{lexer.IDENT, "haha", 0, 23},
-		{lexer.COMMENT, "# \n", 1, 27},
-		{lexer.SEMICOLON, ";", 1, 28},
-		{lexer.GREATER, ">", 1, 31},
-		{lexer.GREATGREAT, ">>", 1, 36},
-		{lexer.DOUBLEQUOTE, "\"something\"", 1, 48},
-		{lexer.SINGLEQUOTE, "'haha'", 1, 55},
-		{lexer.BACKQUOTE, "`blah blah`", 1, 67},
+		{lexer.SEMICOLON, ";", 0, 1, 1},
+		{lexer.GREATER, ">", 0, 3, 3},
+		{lexer.LESS, "<", 0, 5, 5},
+		{lexer.GREATGREAT, ">>", 0, 8, 8},
+		{lexer.GREATAMPERSAND, ">&", 0, 11, 11},
+		{lexer.LESSAMPERSAND, "<&", 0, 14, 14},
+		{lexer.PIPE, "|", 0, 16, 16},
+		{lexer.AMPERSAND, "&", 0, 18, 18},
+		{lexer.IDENT, "haha", 0, 23, 23},
+		{lexer.COMMENT, "# \n", 1, 27, 0},
+		{lexer.SEMICOLON, ";", 1, 28, 1},
+		{lexer.GREATER, ">", 1, 31, 4},
+		{lexer.GREATGREAT, ">>", 1, 36, 9},
+		{lexer.DOUBLEQUOTE, "\"something\"", 1, 48, 21},
+		{lexer.SINGLEQUOTE, "'haha'", 1, 55, 28},
+		{lexer.BACKQUOTE, "`blah blah`", 1, 67, 40},
 	}
 	l := lexer.Lex(input)
 	index := 0
@@ -88,6 +89,9 @@ func TestLexerMultiTokenInput(t *testing.T) {
 		}
 		if c.Line != tests[index].expectedLine {
 			t.Errorf("Expected line %v, got %v at index %v", tests[index].expectedLine, c.Line, index)
+		}
+		if c.Col != tests[index].expectedCol {
+			t.Errorf("Expected col %v, got %v at index %v", tests[index].expectedCol, c.Col, index)
 		}
 		index++
 	}
