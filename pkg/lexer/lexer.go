@@ -31,6 +31,8 @@ const (
 type Token struct {
 	Type TokenType
 	Val  string
+	Line int
+	Pos  int
 }
 
 // grammar
@@ -43,11 +45,13 @@ type Token struct {
 // cmd line -> pipe list io modifiers background optional NEWLINE | NEWLINE | ILLEGAL recovery.
 
 type Lexer struct {
-	input  string // input string
-	start  int    // start position of current token
-	pos    int    // current position in input
-	width  int    // width of the last rune read
-	Tokens chan Token
+	input     string // input string
+	start     int    // start position of current token
+	pos       int    // current position in input
+	width     int    // width of the last rune read
+	Line      int    // +1 after each newline
+	StartLine int    // start line of current token
+	Tokens    chan Token
 }
 
 func Lex(input string) *Lexer {
@@ -67,7 +71,7 @@ func (l *Lexer) run() {
 }
 
 func (l *Lexer) emit(t TokenType) {
-	l.Tokens <- Token{t, l.input[l.start:l.pos]}
+	l.Tokens <- Token{t, l.input[l.start:l.pos], l.Line, l.pos}
 	l.start = l.pos
 }
 
@@ -79,6 +83,9 @@ func (l *Lexer) next() rune {
 	r, w := utf8.DecodeRuneInString(l.input[l.pos:])
 	l.width = w
 	l.pos += l.width
+	if r == '\n' {
+		l.Line++
+	}
 	return r
 }
 
@@ -90,6 +97,10 @@ func (l *Lexer) peek() rune {
 
 func (l *Lexer) backup() {
 	l.pos -= l.width
+	// account for newline
+	if l.width == 1 && l.input[l.pos] == '\n' {
+		l.Line--
+	}
 }
 
 func (l *Lexer) ignore() {
