@@ -102,7 +102,6 @@ func lexCommand(l *Lexer) stateFn {
 	switch r := l.next(); {
 	case r == ' ' || r == '\t' || r == '\r' || r == '\n':
 		l.ignore()
-		return lexCommand
 	case r == '|':
 		l.emit(PIPE)
 	case r == '&':

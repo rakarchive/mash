@@ -31,6 +31,8 @@ func TestLexerSimpleInputs(t *testing.T) {
 		{"haha", lexer.IDENT, "haha"},
 		{"`", lexer.BACKQUOTE, "`"},
 		{"# \n", lexer.COMMENT, "# \n"},
+		{"'", lexer.SINGLEQUOTE, "'"},
+		{"\"", lexer.DOUBLEQUOTE, "\""},
 	}
 	for _, test := range tests {
 		l := lexer.Lex(test.input)
@@ -47,7 +49,7 @@ func TestLexerSimpleInputs(t *testing.T) {
 
 func TestLexerMultiTokenInput(t *testing.T) {
 	input := `; > < >> >& <& | & haha # 
-;  >   >>`
+;  >   >> "something" 'haha'` + " `blah blah` "
 	tests := []struct {
 		expectedType  lexer.TokenType
 		expectedValue string
@@ -65,6 +67,9 @@ func TestLexerMultiTokenInput(t *testing.T) {
 		{lexer.SEMICOLON, ";"},
 		{lexer.GREATER, ">"},
 		{lexer.GREATGREAT, ">>"},
+		{lexer.DOUBLEQUOTE, "\"something\""},
+		{lexer.SINGLEQUOTE, "'haha'"},
+		{lexer.BACKQUOTE, "`blah blah`"},
 	}
 	l := lexer.Lex(input)
 	index := 0
