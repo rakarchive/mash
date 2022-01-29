@@ -77,11 +77,13 @@ const (
 
 	keyword_beg
 	// Keywords
-	LET
 	FOR
 	IF
 	ELIF
 	ELSE
+
+	LET
+	FUNC
 	keyword_end
 )
 
@@ -146,11 +148,13 @@ var tokens = [...]string{
 	SEMICOLON: ";",
 	COLON:     ":",
 
-	LET:  "let",
 	FOR:  "for",
 	IF:   "if",
 	ELIF: "elif",
 	ELSE: "else",
+
+	LET:  "let",
+	FUNC: "func",
 }
 
 // String returns the string corresponding to the token tok.
