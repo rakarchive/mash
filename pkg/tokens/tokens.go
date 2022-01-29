@@ -36,6 +36,19 @@ const (
 	SHR     // >>
 	AND_NOT // &^
 
+	ADD_ASSIGN // +=
+	SUB_ASSIGN // -=
+	MUL_ASSIGN // *=
+	QUO_ASSIGN // /=
+	REM_ASSIGN // %=
+
+	AND_ASSIGN     // &=
+	OR_ASSIGN      // |=
+	XOR_ASSIGN     // ^=
+	SHL_ASSIGN     // <<=
+	SHR_ASSIGN     // >>=
+	AND_NOT_ASSIGN // &^=
+
 	LAND // &&
 	LOR  // ||
 
@@ -94,6 +107,19 @@ var tokens = [...]string{
 	SHL:     "<<",
 	SHR:     ">>",
 	AND_NOT: "&^",
+
+	ADD_ASSIGN: "+=",
+	SUB_ASSIGN: "-=",
+	MUL_ASSIGN: "*=",
+	QUO_ASSIGN: "/=",
+	REM_ASSIGN: "%=",
+
+	AND_ASSIGN:     "&=",
+	OR_ASSIGN:      "|=",
+	XOR_ASSIGN:     "^=",
+	SHL_ASSIGN:     "<<=",
+	SHR_ASSIGN:     ">>=",
+	AND_NOT_ASSIGN: "&^=",
 
 	LAND: "&&",
 	LOR:  "||",
