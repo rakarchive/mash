@@ -20,8 +20,9 @@ import (
 )
 
 type lexer struct {
-	src string
-	ch  rune
+	src  string
+	ch   rune
+	prev token.TokenType
 
 	Tokens chan token.Token
 
@@ -57,6 +58,24 @@ func Lex(src string) chan token.Token {
 	l.run()
 
 	return l.Tokens
+}
+
+func (l *lexer) emit(t token.TokenType) {
+	l.Tokens <- token.Token{
+		Type:     t,
+		Literal:  l.literal(),
+		Position: l.start,
+	}
+
+	l.prev = t
+	l.ignore()
+}
+
+func (l *lexer) error(err string) {
+	l.ErrorCount++
+	if l.err != nil {
+		l.err(l.pos, err)
+	}
 }
 
 func (l *lexer) peek() rune {
@@ -116,23 +135,6 @@ func (l *lexer) ignore() {
 
 func (l *lexer) backup() {
 	l.rdOffset = l.offset
-}
-
-func (l *lexer) emit(t token.TokenType) {
-	l.Tokens <- token.Token{
-		Type:     t,
-		Literal:  l.literal(),
-		Position: l.start,
-	}
-
-	l.ignore()
-}
-
-func (l *lexer) error(err string) {
-	l.ErrorCount++
-	if l.err != nil {
-		l.err(l.pos, err)
-	}
 }
 
 func (l *lexer) atEnd() bool {
