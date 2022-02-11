@@ -230,8 +230,7 @@ func Lookup(name string) TokenType {
 }
 
 type Token struct {
-	Type    TokenType
-	Literal string
-	Line    int
-	Col     int
+	Type     TokenType
+	Literal  string
+	Position Position
 }
