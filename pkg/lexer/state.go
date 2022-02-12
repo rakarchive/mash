@@ -56,6 +56,8 @@ func lexStmt(l *lexer) stateFunc {
 	case unicode.IsSpace(l.ch):
 		// ignore whitespace
 		l.consumeSpace()
+
+	// literals
 	case isIdentStart(l.ch):
 		// identifier
 		l.consumeIdent()
@@ -63,14 +65,20 @@ func lexStmt(l *lexer) stateFunc {
 	case unicode.IsDigit(l.ch):
 		// number
 		return lexNum
-	case l.ch == '#':
-		// line comment
-		l.consumeComment()
-		l.emit(token.COMMENT)
 	case l.ch == '"':
 		// format string
 		l.consumeString()
 		l.emit(token.STRING)
+
+	// operators
+	case token.IsOperator(string(l.ch)):
+		return lexStmtOp
+
+	// special
+	case l.ch == '#':
+		// line comment
+		l.consumeComment()
+		l.emit(token.COMMENT)
 	case l.ch == eof:
 		l.emit(token.EOF)
 		return nil
@@ -88,6 +96,25 @@ func lexNum(l *lexer) stateFunc {
 	}
 
 	l.emit(token.FLOAT)
+	return lexStmt
+}
+
+func lexStmtOp(l *lexer) stateFunc {
+	var t token.TokenType
+	switch l.ch {
+	case '+':
+		t = token.ADD
+	case '-':
+		t = token.SUB
+	case '*':
+		t = token.MUL
+	case '/':
+		t = token.QUO
+	case '%':
+		t = token.REM
+	}
+
+	l.emit(t)
 	return lexStmt
 }
 

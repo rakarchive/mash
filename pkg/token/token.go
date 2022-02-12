@@ -170,6 +170,16 @@ var tokens = [...]string{
 	FUNC: "func",
 }
 
+func token(s string) TokenType {
+	for t, val := range tokens {
+		if val == s {
+			return TokenType(t)
+		}
+	}
+
+	return ILLEGAL
+}
+
 // String returns the string corresponding to the token tok.
 // For operators, delimiters, and keywords the string is the actual
 // token character sequence (e.g., for the token ADD, the string is
@@ -220,6 +230,11 @@ func IsIdentifier(name string) bool {
 		}
 	}
 	return name != "" && !IsKeyword(name)
+}
+
+func IsOperator(s string) bool {
+	t := token(s)
+	return t.IsOperator()
 }
 
 func Lookup(name string) TokenType {
