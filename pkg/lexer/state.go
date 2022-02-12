@@ -112,6 +112,38 @@ func lexStmtOp(l *lexer) stateFunc {
 		t = token.QUO
 	case '%':
 		t = token.REM
+	case '&':
+		t = token.AND
+	case '|':
+		t = token.OR
+	case '^':
+		t = token.XOR
+	case '<':
+		t = token.LSS
+	case '>':
+		t = token.GTR
+	case '=':
+		t = token.ASSIGN
+	case '!':
+		t = token.NOT
+	case '(':
+		t = token.LPAREN
+	case '[':
+		t = token.LPAREN
+	case '{':
+		t = token.LBRACE
+	case ',':
+		t = token.COMMA
+	case ')':
+		t = token.RPAREN
+	case ']':
+		t = token.RBRACK
+	case '}':
+		t = token.RBRACE
+	case ';':
+		t = token.SEMICOLON
+	case ':':
+		t = token.COLON
 	}
 
 	l.emit(t)
