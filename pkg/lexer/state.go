@@ -99,33 +99,73 @@ func lexNum(l *lexer) stateFunc {
 	return lexStmt
 }
 
+func (l *lexer) makeOp(target rune, pass token.TokenType, fail token.TokenType) token.TokenType {
+	if l.peek() == target {
+		l.consume()
+		return pass
+	}
+
+	return fail
+}
+
 func lexStmtOp(l *lexer) stateFunc {
 	var t token.TokenType
 	switch l.ch {
 	case '+':
-		t = token.ADD
+		t = l.makeOp('=', token.ADD_ASSIGN, token.ADD)
 	case '-':
-		t = token.SUB
+		t = l.makeOp('=', token.SUB_ASSIGN, token.SUB)
 	case '*':
-		t = token.MUL
+		t = l.makeOp('=', token.MUL_ASSIGN, token.MUL)
 	case '/':
-		t = token.QUO
+		t = l.makeOp('=', token.QUO_ASSIGN, token.QUO)
 	case '%':
-		t = token.REM
+		t = l.makeOp('=', token.REM_ASSIGN, token.REM)
 	case '&':
-		t = token.AND
+		t = l.makeOp('&', token.LAND, token.AND)
+
+		if t == token.LAND {
+			break
+		}
+
+		t = l.makeOp('^', token.AND_NOT, token.AND)
+
+		e := token.AND_NOT_ASSIGN
+		if t == token.AND {
+			e = token.AND_ASSIGN
+		}
+
+		t = l.makeOp('=', e, t)
 	case '|':
-		t = token.OR
+		t = l.makeOp('|', token.LOR, token.OR)
+
+		if t == token.OR {
+			t = l.makeOp('=', token.OR_ASSIGN, token.OR)
+		}
 	case '^':
-		t = token.XOR
+		t = l.makeOp('=', token.XOR_ASSIGN, token.XOR)
 	case '<':
-		t = token.LSS
+		t = l.makeOp('<', token.SHL, token.LSS)
+
+		e := token.SHL_ASSIGN
+		if t == token.LSS {
+			e = token.LEQ
+		}
+
+		t = l.makeOp('=', e, t)
 	case '>':
-		t = token.GTR
+		t = l.makeOp('>', token.SHR, token.GTR)
+
+		e := token.SHR_ASSIGN
+		if t == token.GTR {
+			e = token.GEQ
+		}
+
+		t = l.makeOp('=', e, t)
 	case '=':
-		t = token.ASSIGN
+		t = l.makeOp('=', token.ASSIGN, token.EQL)
 	case '!':
-		t = token.NOT
+		t = l.makeOp('=', token.NEQ, token.NOT)
 	case '(':
 		t = token.LPAREN
 	case '[':
@@ -143,7 +183,7 @@ func lexStmtOp(l *lexer) stateFunc {
 	case ';':
 		t = token.SEMICOLON
 	case ':':
-		t = token.COLON
+		t = l.makeOp('=', token.DEFINE, token.COLON)
 	}
 
 	l.emit(t)
