@@ -241,6 +241,11 @@ func Lookup(name string) TokenType {
 	if tok, ok := keywords[name]; ok {
 		return tok
 	}
+
+	if name == "NaN" || name == "Inf" {
+		return FLOAT
+	}
+
 	return IDENT
 }
 
