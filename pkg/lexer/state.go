@@ -91,6 +91,7 @@ func lexStmt(l *lexer) stateFunc {
 }
 
 func lexNum(l *lexer) stateFunc {
+	// TODO: support more number types
 	for unicode.IsDigit(l.peek()) {
 		l.consume()
 	}
@@ -191,7 +192,28 @@ func lexStmtOp(l *lexer) stateFunc {
 }
 
 func lexCmd(l *lexer) stateFunc {
-	return nil
+	l.consume()
+
+	switch {
+	case unicode.IsSpace(l.ch):
+		// ignore whitespace
+		l.consumeSpace()
+
+	case l.ch == '"':
+		l.consumeString()
+		l.emit(token.STRING)
+
+	// comment
+	case l.ch == '#':
+		l.consumeComment()
+		l.emit(token.COMMENT)
+
+	default:
+		l.consumeWord()
+		l.emit(token.STRING)
+	}
+
+	return lexBase
 }
 
 func isAlphabet(r rune) bool {

@@ -38,6 +38,15 @@ func (l *lexer) consumeIdent() {
 func (l *lexer) consumeComment() {
 	for r := l.peek(); r != '\n' && r != eof; r = l.peek() {
 		l.consume()
+
+		if r == '\\' {
+			if l.peek() == eof {
+				l.error("unexpected EOF")
+				break
+			}
+
+			l.consume()
+		}
 	}
 }
 
@@ -47,6 +56,7 @@ func (l *lexer) consumeString() {
 
 		if r == '\\' {
 			if l.peek() == eof {
+				l.error("unexpected EOF")
 				break
 			}
 
@@ -55,6 +65,6 @@ func (l *lexer) consumeString() {
 	}
 
 	if l.peek() == eof {
-		l.error("non terminated string")
+		l.error("unexpected EOF")
 	}
 }
