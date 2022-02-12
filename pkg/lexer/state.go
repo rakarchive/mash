@@ -53,6 +53,15 @@ func lexStmt(l *lexer) stateFunc {
 	l.consume()
 
 	switch {
+	case l.ch == '\n':
+		// semicolon insertion
+		if l.prev.InsertSemi() {
+			l.emit(token.SEMICOLON)
+			return lexBase
+		}
+
+		l.consumeSpace()
+
 	case unicode.IsSpace(l.ch):
 		// ignore whitespace
 		l.consumeSpace()
@@ -195,6 +204,15 @@ func lexCmd(l *lexer) stateFunc {
 	l.consume()
 
 	switch {
+	// semicolon insertion
+	case l.ch == '\n':
+		if l.prev.InsertSemi() {
+			l.emit(token.SEMICOLON)
+			return lexBase
+		}
+
+		l.consumeSpace()
+
 	case unicode.IsSpace(l.ch):
 		// ignore whitespace
 		l.consumeSpace()
@@ -213,7 +231,7 @@ func lexCmd(l *lexer) stateFunc {
 		l.emit(token.STRING)
 	}
 
-	return lexBase
+	return lexCmd
 }
 
 func isAlphabet(r rune) bool {

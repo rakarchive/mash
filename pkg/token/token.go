@@ -197,6 +197,14 @@ func (tok TokenType) String() string {
 	return s
 }
 
+func (tok TokenType) InsertSemi() bool {
+	if tok.IsLiteral() {
+		return true
+	}
+
+	return tok == RPAREN || tok == RBRACK || tok == RBRACE
+}
+
 func (tok TokenType) IsLiteral() bool {
 	return literal_beg < tok && tok < literal_end
 }
