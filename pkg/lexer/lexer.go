@@ -135,6 +135,7 @@ func (l *lexer) ignore() {
 
 func (l *lexer) backup() {
 	l.rdOffset = l.offset
+	l.pos = l.start
 }
 
 func (l *lexer) atEnd() bool {
