@@ -206,12 +206,8 @@ func lexCmd(l *lexer) stateFunc {
 	switch {
 	// semicolon insertion
 	case l.ch == '\n':
-		if l.prev.InsertSemi() {
-			l.emit(token.SEMICOLON)
-			return lexBase
-		}
-
-		l.consumeSpace()
+		l.emit(token.SEMICOLON)
+		return lexBase
 
 	case unicode.IsSpace(l.ch):
 		// ignore whitespace
