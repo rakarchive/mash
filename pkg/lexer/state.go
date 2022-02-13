@@ -224,10 +224,31 @@ func lexCmd(l *lexer) stateFunc {
 
 	default:
 		l.consumeWord()
-		l.emit(token.STRING)
+		l.emit(cmdOpLookup(l.literal()))
 	}
 
 	return lexCmd
+}
+
+func cmdOpLookup(s string) token.TokenType {
+	switch s {
+	case "||":
+		return token.LOR
+	case "&&":
+		return token.LAND
+	case "!":
+		return token.NOT
+	case "<":
+		return token.LSS
+	case ">":
+		return token.GTR
+	case ">>":
+		return token.SHR
+	case "|":
+		return token.OR
+	default:
+		return token.STRING
+	}
 }
 
 func isAlphabet(r rune) bool {
