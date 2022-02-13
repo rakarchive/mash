@@ -250,10 +250,6 @@ func Lookup(name string) TokenType {
 		return tok
 	}
 
-	if name == "NaN" || name == "Inf" {
-		return FLOAT
-	}
-
 	return IDENT
 }
 
