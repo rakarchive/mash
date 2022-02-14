@@ -55,7 +55,7 @@ func Lex(src string) chan token.Token {
 			Col:  1,
 		},
 	}
-	l.run()
+	go l.run()
 
 	return l.Tokens
 }

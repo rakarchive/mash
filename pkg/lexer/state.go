@@ -29,12 +29,15 @@ func (l *lexer) run() {
 }
 
 func lexBase(l *lexer) stateFunc {
-	r := l.peek()
-	if unicode.IsSpace(r) {
-		l.consumeSpace()
-	}
 
-	if isAlphabet(r) {
+	r := l.peek()
+	switch {
+	case unicode.IsSpace(r):
+		l.consumeSpace()
+	case r == '#':
+		l.consumeComment()
+		l.emit(token.COMMENT)
+	case isAlphabet(r):
 		l.consumeWord()
 
 		word := l.literal()
@@ -44,9 +47,12 @@ func lexBase(l *lexer) stateFunc {
 		}
 
 		l.backup()
+		fallthrough
+	default:
+		return lexCmd
 	}
 
-	return lexCmd
+	return lexBase
 }
 
 func lexStmt(l *lexer) stateFunc {
@@ -89,6 +95,7 @@ func lexStmt(l *lexer) stateFunc {
 		l.consumeComment()
 		l.emit(token.COMMENT)
 	case l.ch == eof:
+		l.emit(token.SEMICOLON)
 		l.emit(token.EOF)
 		return nil
 	default:
@@ -221,7 +228,10 @@ func lexCmd(l *lexer) stateFunc {
 	case l.ch == '#':
 		l.consumeComment()
 		l.emit(token.COMMENT)
-
+	case l.ch == eof:
+		l.emit(token.SEMICOLON)
+		l.emit(token.EOF)
+		return nil
 	default:
 		l.consumeWord()
 		l.emit(cmdOpLookup(l.literal()))
