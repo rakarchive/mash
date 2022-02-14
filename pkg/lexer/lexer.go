@@ -133,11 +133,6 @@ func (l *lexer) ignore() {
 	l.start = l.pos
 }
 
-func (l *lexer) backup() {
-	l.rdOffset = l.offset
-	l.pos = l.start
-}
-
 func (l *lexer) atEnd() bool {
 	return l.rdOffset >= len(l.src)
 }

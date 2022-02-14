@@ -46,7 +46,7 @@ func lexBase(l *lexer) stateFunc {
 			return lexStmt
 		}
 
-		l.backup()
+		l.emit(cmdOpLookup(word))
 		fallthrough
 	default:
 		return lexCmd
