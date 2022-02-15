@@ -33,12 +33,11 @@ next:
 		l.emit(token.EOF)
 		return
 	case unicode.IsSpace(r):
-		l.consumeSpace()
+		consumeSpace(l)
 	case r == '#':
-		l.consumeComment()
-		l.emit(token.COMMENT)
+		lexComment(l)
 	case isAlphabet(r):
-		l.consumeWord()
+		consumeWord(l)
 
 		word := l.literal()
 		if token.IsKeyword(word) {
@@ -56,6 +55,10 @@ next:
 	goto next
 }
 
+func isAlphabet(r rune) bool {
+	return r > 'A' && r < 'Z' || r > 'a' && r < 'z'
+}
+
 func lexStmt(l *lexer) {
 next:
 	l.consume()
@@ -68,24 +71,22 @@ next:
 			return
 		}
 
-		l.consumeSpace()
+		consumeSpace(l)
 
 	case unicode.IsSpace(l.ch):
 		// ignore whitespace
-		l.consumeSpace()
+		consumeSpace(l)
 
 	// literals
 	case isIdentStart(l.ch):
 		// identifier
-		l.consumeIdent()
-		l.emit(token.Lookup(l.literal()))
+		lexIdent(l)
 	case unicode.IsDigit(l.ch):
 		// number
 		lexNum(l)
 	case l.ch == '"':
 		// format string
-		l.consumeString()
-		l.emit(token.STRING)
+		lexString(l)
 
 	// operators
 	case token.IsOperator(string(l.ch)):
@@ -94,8 +95,7 @@ next:
 	// special
 	case l.ch == '#':
 		// line comment
-		l.consumeComment()
-		l.emit(token.COMMENT)
+		lexComment(l)
 	case l.ch == eof:
 		return
 	default:
@@ -104,6 +104,18 @@ next:
 	}
 
 	goto next
+}
+
+func lexIdent(l *lexer) {
+	for isIdent(l.peek()) {
+		l.consume()
+	}
+
+	l.emit(token.Lookup(l.literal()))
+}
+
+func isIdentStart(r rune) bool {
+	return r == '_' || unicode.IsLetter(r)
 }
 
 func lexNum(l *lexer) {
@@ -217,20 +229,18 @@ next:
 
 	case unicode.IsSpace(l.ch):
 		// ignore whitespace
-		l.consumeSpace()
+		consumeSpace(l)
 
 	case l.ch == '"':
-		l.consumeString()
-		l.emit(token.STRING)
+		lexString(l)
 
 	// comment
 	case l.ch == '#':
-		l.consumeComment()
-		l.emit(token.COMMENT)
+		lexComment(l)
 	case l.ch == eof:
 		return
 	default:
-		l.consumeWord()
+		consumeWord(l)
 		l.emit(cmdOpLookup(l.literal()))
 	}
 
@@ -258,14 +268,58 @@ func cmdOpLookup(s string) token.TokenType {
 	}
 }
 
-func isAlphabet(r rune) bool {
-	return r > 'A' && r < 'Z' || r > 'a' && r < 'z'
+func lexComment(l *lexer) {
+	for r := l.peek(); r != '\n' && r != eof; r = l.peek() {
+		l.consume()
+
+		if r == '\\' {
+			if l.peek() == eof {
+				l.error("unexpected EOF")
+				break
+			}
+
+			l.consume()
+		}
+	}
+
+	l.emit(token.COMMENT)
 }
 
-func isIdentStart(r rune) bool {
-	return r == '_' || unicode.IsLetter(r)
+func lexString(l *lexer) {
+	for r := l.peek(); r != '"' && r != eof; r = l.peek() {
+		l.consume()
+
+		if r == '\\' {
+			if l.peek() == eof {
+				l.error("unexpected EOF")
+				break
+			}
+
+			l.consume()
+		}
+	}
+
+	if l.peek() == eof {
+		l.error("unexpected EOF")
+	}
+
+	l.emit(token.STRING)
+}
+
+func consumeSpace(l *lexer) {
+	for unicode.IsSpace(l.peek()) {
+		l.consume()
+	}
+
+	l.ignore()
 }
 
 func isIdent(r rune) bool {
 	return isIdentStart(r) || unicode.IsDigit(r)
+}
+
+func consumeWord(l *lexer) {
+	for r := l.peek(); !unicode.IsSpace(r) && r != eof; r = l.peek() {
+		l.consume()
+	}
 }
