@@ -32,11 +32,8 @@ next:
 		l.emit(token.SEMICOLON)
 		l.emit(token.EOF)
 		return
-	case r == '\n':
-		l.consume()
-		l.ignore()
 	case unicode.IsSpace(r):
-		consumeSpace(l)
+		consumeAllSpace(l)
 	case r == '#':
 		lexComment(l)
 	case isAlphabet(r):
@@ -74,7 +71,7 @@ next:
 			return
 		}
 
-		l.ignore()
+		consumeAllSpace(l)
 	case unicode.IsSpace(l.ch):
 		// ignore whitespace
 		consumeSpace(l)
@@ -310,6 +307,14 @@ func lexString(l *lexer) {
 
 func consumeSpace(l *lexer) {
 	for r := l.peek(); unicode.IsSpace(r) && r != '\n'; r = l.peek() {
+		l.consume()
+	}
+
+	l.ignore()
+}
+
+func consumeAllSpace(l *lexer) {
+	for unicode.IsSpace(l.peek()) {
 		l.consume()
 	}
 
