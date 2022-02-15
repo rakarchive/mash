@@ -19,19 +19,19 @@ import (
 	"github.com/raklaptudirm/mash/pkg/token"
 )
 
-type stateFunc func(*lexer) stateFunc
-
 func (l *lexer) run() {
-	for state := lexBase; state != nil; {
-		state = state(l)
-	}
+	lexBase(l)
 	close(l.Tokens)
 }
 
-func lexBase(l *lexer) stateFunc {
-
+func lexBase(l *lexer) {
+next:
 	r := l.peek()
 	switch {
+	case r == eof:
+		l.emit(token.SEMICOLON)
+		l.emit(token.EOF)
+		return
 	case unicode.IsSpace(r):
 		l.consumeSpace()
 	case r == '#':
@@ -43,19 +43,21 @@ func lexBase(l *lexer) stateFunc {
 		word := l.literal()
 		if token.IsKeyword(word) {
 			l.emit(token.Lookup(word))
-			return lexStmt
+			lexStmt(l)
+			break
 		}
 
 		l.emit(cmdOpLookup(word))
 		fallthrough
 	default:
-		return lexCmd
+		lexCmd(l)
 	}
 
-	return lexBase
+	goto next
 }
 
-func lexStmt(l *lexer) stateFunc {
+func lexStmt(l *lexer) {
+next:
 	l.consume()
 
 	switch {
@@ -63,7 +65,7 @@ func lexStmt(l *lexer) stateFunc {
 		// semicolon insertion
 		if l.prev.InsertSemi() {
 			l.emit(token.SEMICOLON)
-			return lexBase
+			return
 		}
 
 		l.consumeSpace()
@@ -79,7 +81,7 @@ func lexStmt(l *lexer) stateFunc {
 		l.emit(token.Lookup(l.literal()))
 	case unicode.IsDigit(l.ch):
 		// number
-		return lexNum
+		lexNum(l)
 	case l.ch == '"':
 		// format string
 		l.consumeString()
@@ -87,7 +89,7 @@ func lexStmt(l *lexer) stateFunc {
 
 	// operators
 	case token.IsOperator(string(l.ch)):
-		return lexStmtOp
+		lexStmtOp(l)
 
 	// special
 	case l.ch == '#':
@@ -95,25 +97,22 @@ func lexStmt(l *lexer) stateFunc {
 		l.consumeComment()
 		l.emit(token.COMMENT)
 	case l.ch == eof:
-		l.emit(token.SEMICOLON)
-		l.emit(token.EOF)
-		return nil
+		return
 	default:
 		// rune not supported
 		l.emit(token.ILLEGAL)
 	}
 
-	return lexStmt
+	goto next
 }
 
-func lexNum(l *lexer) stateFunc {
+func lexNum(l *lexer) {
 	// TODO: support more number types
 	for unicode.IsDigit(l.peek()) {
 		l.consume()
 	}
 
 	l.emit(token.FLOAT)
-	return lexStmt
 }
 
 func (l *lexer) makeOp(target rune, pass token.TokenType, fail token.TokenType) token.TokenType {
@@ -125,7 +124,7 @@ func (l *lexer) makeOp(target rune, pass token.TokenType, fail token.TokenType) 
 	return fail
 }
 
-func lexStmtOp(l *lexer) stateFunc {
+func lexStmtOp(l *lexer) {
 	var t token.TokenType
 	switch l.ch {
 	case '+':
@@ -204,17 +203,17 @@ func lexStmtOp(l *lexer) stateFunc {
 	}
 
 	l.emit(t)
-	return lexStmt
 }
 
-func lexCmd(l *lexer) stateFunc {
+func lexCmd(l *lexer) {
+next:
 	l.consume()
 
 	switch {
 	// semicolon insertion
 	case l.ch == '\n':
 		l.emit(token.SEMICOLON)
-		return lexBase
+		return
 
 	case unicode.IsSpace(l.ch):
 		// ignore whitespace
@@ -229,15 +228,13 @@ func lexCmd(l *lexer) stateFunc {
 		l.consumeComment()
 		l.emit(token.COMMENT)
 	case l.ch == eof:
-		l.emit(token.SEMICOLON)
-		l.emit(token.EOF)
-		return nil
+		return
 	default:
 		l.consumeWord()
 		l.emit(cmdOpLookup(l.literal()))
 	}
 
-	return lexCmd
+	goto next
 }
 
 func cmdOpLookup(s string) token.TokenType {
