@@ -14,10 +14,13 @@
 package lexer
 
 import (
+	"fmt"
 	"unicode"
 
 	"github.com/raklaptudirm/mash/pkg/token"
 )
+
+var ErrUnexpectedEOF = fmt.Errorf("unexpected EOF")
 
 func (l *lexer) run() {
 	lexBase(l)
@@ -281,7 +284,7 @@ func lexString(l *lexer) {
 
 		if r == '\\' {
 			if l.peek() == eof {
-				l.error("unexpected EOF")
+				l.error(ErrUnexpectedEOF)
 				break
 			}
 
@@ -290,7 +293,7 @@ func lexString(l *lexer) {
 	}
 
 	if l.peek() == eof {
-		l.error("unexpected EOF")
+		l.error(ErrUnexpectedEOF)
 	}
 
 	l.emit(token.STRING)

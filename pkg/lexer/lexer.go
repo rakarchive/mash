@@ -14,9 +14,16 @@
 package lexer
 
 import (
+	"fmt"
 	"unicode/utf8"
 
 	"github.com/raklaptudirm/mash/pkg/token"
+)
+
+var (
+	ErrIllegalNUL = fmt.Errorf("illegal character NUL")
+	ErrIllegalBOM = fmt.Errorf("illegal byte order mark")
+	ErrIllegalEnc = fmt.Errorf("illegal utf-8 encoding")
 )
 
 type lexer struct {
@@ -42,7 +49,7 @@ const (
 	bom = 0xFEFF // byte order mark
 )
 
-type ErrorHandler func(token.Position, string)
+type ErrorHandler func(token.Position, error)
 
 func Lex(src string, err ErrorHandler) chan token.Token {
 	origin := token.Position{
@@ -76,7 +83,7 @@ func (l *lexer) emit(t token.TokenType) {
 	l.ignore()
 }
 
-func (l *lexer) error(err string) {
+func (l *lexer) error(err error) {
 	l.ErrorCount++
 	if l.err != nil {
 		l.err(l.pos, err)
@@ -99,7 +106,7 @@ func (l *lexer) consume() {
 
 	r, w := rune(l.src[l.rdOffset]), 1
 	if r == 0 {
-		l.error("illegal character NUL")
+		l.error(ErrIllegalNUL)
 		goto advance
 	}
 
@@ -110,12 +117,12 @@ func (l *lexer) consume() {
 	r, w = utf8.DecodeRuneInString(l.src[l.rdOffset:])
 
 	if r == utf8.RuneError && w == 1 {
-		l.error("illegal UTF-8 encoding")
+		l.error(ErrIllegalEnc)
 		goto advance
 	}
 
 	if r == bom && l.offset > 0 {
-		l.error("illegal byte order mark")
+		l.error(ErrIllegalBOM)
 	}
 
 advance:
