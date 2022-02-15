@@ -44,16 +44,21 @@ const (
 
 type ErrorHandler func(token.Position, string)
 
-func Lex(src string) chan token.Token {
+func Lex(src string, err ErrorHandler) chan token.Token {
+	origin := token.Position{
+		Line: 1,
+		Col:  1,
+	}
+
 	l := &lexer{
 		src: src,
 
 		Tokens: make(chan token.Token),
 
-		pos: token.Position{
-			Line: 1,
-			Col:  1,
-		},
+		err: err,
+
+		start: origin,
+		pos:   origin,
 	}
 	go l.run()
 
