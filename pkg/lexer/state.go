@@ -270,15 +270,6 @@ func cmdOpLookup(s string) token.TokenType {
 func lexComment(l *lexer) {
 	for r := l.peek(); r != '\n' && r != eof; r = l.peek() {
 		l.consume()
-
-		if r == '\\' {
-			if l.peek() == eof {
-				l.error("unexpected EOF")
-				break
-			}
-
-			l.consume()
-		}
 	}
 
 	l.emit(token.COMMENT)
