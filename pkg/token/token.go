@@ -210,7 +210,12 @@ func (tok TokenType) InsertSemi() bool {
 		return true
 	}
 
-	return tok == RPAREN || tok == RBRACK || tok == RBRACE
+	switch tok {
+	case RPAREN, RBRACK, RBRACE, BREAK, CONTINUE, RETURN:
+		return true
+	default:
+		return false
+	}
 }
 
 func (tok TokenType) IsLiteral() bool {

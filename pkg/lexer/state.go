@@ -84,8 +84,8 @@ next:
 	// literals
 	case isIdentStart(l.ch):
 		// identifier
-		lexIdent(l)
-		l.insertSemi = true
+		t := lexIdent(l)
+		l.insertSemi = t.InsertSemi()
 	case unicode.IsDigit(l.ch):
 		// number
 		lexNum(l)
@@ -114,12 +114,14 @@ next:
 	goto next
 }
 
-func lexIdent(l *lexer) {
+func lexIdent(l *lexer) token.TokenType {
 	for isIdent(l.peek()) {
 		l.consume()
 	}
 
-	l.emit(token.Lookup(l.literal()))
+	t := token.Lookup(l.literal())
+	l.emit(t)
+	return t
 }
 
 func isIdentStart(r rune) bool {
