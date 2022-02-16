@@ -208,7 +208,7 @@ func lexStmtOp(l *lexer) token.TokenType {
 	case '(':
 		t = token.LPAREN
 	case '[':
-		t = token.LPAREN
+		t = token.LBRACK
 	case '{':
 		t = token.LBRACE
 	case ',':
