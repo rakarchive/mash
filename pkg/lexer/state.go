@@ -294,7 +294,7 @@ func lexString(l *lexer) {
 		if r == '\\' {
 			if l.peek() == eof {
 				l.error(ErrUnexpectedEOF)
-				break
+				return
 			}
 
 			l.consume()
@@ -303,8 +303,10 @@ func lexString(l *lexer) {
 
 	if l.peek() == eof {
 		l.error(ErrUnexpectedEOF)
+		return
 	}
 
+	l.consume()
 	l.emit(token.STRING)
 }
 
