@@ -199,7 +199,7 @@ func lexStmtOp(l *lexer) token.TokenType {
 
 		t = l.makeOp('=', e, t)
 	case '=':
-		t = l.makeOp('=', token.ASSIGN, token.EQL)
+		t = l.makeOp('=', token.EQL, token.ASSIGN)
 	case '!':
 		t = l.makeOp('=', token.NEQ, token.NOT)
 	case '(':
