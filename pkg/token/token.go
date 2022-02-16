@@ -97,6 +97,10 @@ const (
 
 	LET
 	FUNC
+
+	BREAK
+	CONTINUE
+	RETURN
 	keyword_end
 )
 
@@ -168,6 +172,10 @@ var tokens = [...]string{
 
 	LET:  "let",
 	FUNC: "func",
+
+	BREAK:    "break",
+	CONTINUE: "continue",
+	RETURN:   "return",
 }
 
 func token(s string) TokenType {
