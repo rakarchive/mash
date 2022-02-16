@@ -268,8 +268,8 @@ func IsKeyword(name string) bool {
 // IsIdentifier returns a boolean depending of wether name is a valid
 // identifier. A string is a valid identifier if it's first letter is
 // an unicode letter(gc = L) or an underscore, while the rest of the
-// characters are letters, underscores, or unicode decimal digits
-// (gc =  Nd).
+// characters are letters, underscores, or decimal digits(0-9).
+//
 func IsIdentifier(name string) bool {
 	for i, c := range name {
 		if !unicode.IsLetter(c) && (i == 0 || !unicode.IsDigit(c)) && c != '_' {
