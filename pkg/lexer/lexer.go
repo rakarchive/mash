@@ -27,9 +27,10 @@ var (
 )
 
 type lexer struct {
-	src  string
-	ch   rune
-	prev token.TokenType
+	src string
+	ch  rune
+
+	insertSemi bool
 
 	Tokens chan token.Token
 
@@ -79,7 +80,6 @@ func (l *lexer) emit(t token.TokenType) {
 		Position: l.start,
 	}
 
-	l.prev = t
 	l.ignore()
 }
 

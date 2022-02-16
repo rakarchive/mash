@@ -63,13 +63,15 @@ func isAlphabet(r rune) bool {
 }
 
 func lexStmt(l *lexer) {
+	l.insertSemi = false
+
 next:
 	l.consume()
 
 	switch {
 	case l.ch == '\n':
 		// semicolon insertion
-		if l.prev.InsertSemi() {
+		if l.insertSemi {
 			l.emit(token.SEMICOLON)
 			return
 		}
@@ -83,16 +85,20 @@ next:
 	case isIdentStart(l.ch):
 		// identifier
 		lexIdent(l)
+		l.insertSemi = true
 	case unicode.IsDigit(l.ch):
 		// number
 		lexNum(l)
+		l.insertSemi = true
 	case l.ch == '"':
 		// format string
 		lexString(l)
+		l.insertSemi = true
 
 	// operators
 	case token.IsOperator(string(l.ch)):
-		lexStmtOp(l)
+		t := lexStmtOp(l)
+		l.insertSemi = t.InsertSemi()
 
 	// special
 	case l.ch == '#':
@@ -138,7 +144,7 @@ func (l *lexer) makeOp(target rune, pass token.TokenType, fail token.TokenType) 
 	return fail
 }
 
-func lexStmtOp(l *lexer) {
+func lexStmtOp(l *lexer) token.TokenType {
 	var t token.TokenType
 	switch l.ch {
 	case '+':
@@ -217,6 +223,7 @@ func lexStmtOp(l *lexer) {
 	}
 
 	l.emit(t)
+	return t
 }
 
 func lexCmd(l *lexer) {
