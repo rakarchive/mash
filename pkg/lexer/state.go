@@ -44,7 +44,10 @@ next:
 
 		word := l.literal()
 		if token.IsKeyword(word) {
-			l.emit(token.Lookup(word))
+			t := token.Lookup(word)
+			l.emit(t)
+			l.insertSemi = t.InsertSemi()
+
 			lexStmt(l)
 			break
 		}
@@ -63,8 +66,6 @@ func isAlphabet(r rune) bool {
 }
 
 func lexStmt(l *lexer) {
-	l.insertSemi = false
-
 next:
 	l.consume()
 
