@@ -15,15 +15,19 @@ package token
 
 import "fmt"
 
+// Position represents a specific line and column in a source string.
 type Position struct {
 	Line int
 	Col  int
 }
 
+// String returns a string representation of p, in the format line:column.
 func (p *Position) String() string {
 	return fmt.Sprintf("%v:%v", p.Line, p.Col)
 }
 
+// NextLine emulates going to the next line from position p in a string by
+// increasing line by 1 and setting column to 1, or the first column.
 func (p *Position) NextLine() {
 	p.Line++
 	p.Col = 1
