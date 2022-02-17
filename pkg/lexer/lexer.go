@@ -127,21 +127,26 @@ func (l *lexer) consume() {
 
 	r, w := rune(l.src[l.rdOffset]), 1
 	if r == 0 {
+		// null rune is illegal in source
 		l.error(ErrIllegalNUL)
 		goto advance
 	}
 
 	if r < utf8.RuneSelf {
+		// r is a single byte rune
 		goto advance
 	}
 
+	// decode multi-byte rune
 	r, w = utf8.DecodeRuneInString(l.src[l.rdOffset:])
 
 	if r == utf8.RuneError && w == 1 {
+		// illegal unicode encoding
 		l.error(ErrIllegalEnc)
 		goto advance
 	}
 
+	// bom is only legal as the first rune
 	if r == bom && l.offset > 0 {
 		l.error(ErrIllegalBOM)
 	}
