@@ -14,13 +14,13 @@
 package lexer
 
 import (
-	"fmt"
+	"errors"
 	"unicode"
 
 	"github.com/raklaptudirm/mash/pkg/token"
 )
 
-var ErrUnexpectedEOF = fmt.Errorf("unexpected EOF")
+var ErrUnexpectedEOF = errors.New("unexpected EOF")
 
 // run starts lexing the source in l and closes the lexer's token channel
 // when it is done.

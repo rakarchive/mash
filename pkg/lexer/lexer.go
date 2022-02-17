@@ -14,7 +14,7 @@
 package lexer
 
 import (
-	"fmt"
+	"errors"
 	"unicode/utf8"
 
 	"github.com/raklaptudirm/mash/pkg/token"
@@ -22,9 +22,9 @@ import (
 
 // Various error values returned by lexer.consume.
 var (
-	ErrIllegalNUL = fmt.Errorf("illegal character NUL")
-	ErrIllegalBOM = fmt.Errorf("illegal byte order mark")
-	ErrIllegalEnc = fmt.Errorf("illegal utf-8 encoding")
+	ErrIllegalNUL = errors.New("illegal character NUL")
+	ErrIllegalBOM = errors.New("illegal byte order mark")
+	ErrIllegalEnc = errors.New("illegal utf-8 encoding")
 )
 
 // lexer represents a mash source string and related lexing information.
