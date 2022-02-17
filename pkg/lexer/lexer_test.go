@@ -77,7 +77,12 @@ let )
 let ]
 let }
 let ;
-let :`
+let :
+
+break
+
+echo a command
+`
 
 	tests := []struct {
 		expectedType    token.TokenType
@@ -199,8 +204,13 @@ let :`
 		{token.SEMICOLON, ";", 69, 5},
 		{token.LET, "let", 70, 1},
 		{token.COLON, ":", 70, 5},
-		{token.SEMICOLON, "", 70, 6},
-		{token.EOF, "", 70, 6},
+		{token.BREAK, "break", 72, 1},
+		{token.SEMICOLON, "\n", 72, 6},
+		{token.STRING, "echo", 74, 1},
+		{token.STRING, "a", 74, 6},
+		{token.STRING, "command", 74, 8},
+		{token.SEMICOLON, "\n", 74, 15},
+		{token.EOF, "", 75, 1},
 	}
 
 	index := 0
