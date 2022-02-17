@@ -34,12 +34,8 @@ next:
 	r := l.peek()
 	switch {
 	case r == eof:
-		// emit semicolon before eof
-		l.emit(token.SEMICOLON)
 		l.emit(token.EOF)
-
-		// lexing finished
-		return
+		return // lexing finished
 
 	// ignore all space runes
 	case unicode.IsSpace(r):
@@ -48,7 +44,15 @@ next:
 	case r == '#':
 		lexComment(l)
 
-	case isAlphabet(r):
+	// command or statement
+	default:
+		goto statement
+	}
+
+	goto next
+
+statement:
+	if isAlphabet(r) {
 		consumeWord(l)
 
 		word := l.literal()
@@ -59,17 +63,18 @@ next:
 			l.insertSemi = t.InsertSemi()
 
 			lexStmt(l)
-			break
+			goto insertSemi
 		}
 
 		// commands don't start with a keyword
 		l.emit(cmdOpLookup(word))
-		fallthrough
-	default:
-		lexCmd(l)
 	}
 
-	// loop till eof
+	lexCmd(l)
+
+	// semicolon insertion
+insertSemi:
+	l.emit(token.SEMICOLON)
 	goto next
 }
 
@@ -83,9 +88,8 @@ next:
 
 	switch {
 	case l.ch == '\n':
-		// auto semicolon insertion
 		if l.insertSemi {
-			l.emit(token.SEMICOLON)
+			// if semicolon is inserted the statement ends
 			return
 		}
 
@@ -259,9 +263,7 @@ next:
 
 	switch {
 	case l.ch == '\n':
-		// auto semicolon insertion
-		l.emit(token.SEMICOLON)
-		return
+		return // insertion in handled by lexBase
 
 	case unicode.IsSpace(l.ch):
 		// ignore all space
