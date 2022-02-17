@@ -44,7 +44,7 @@ type lexer struct {
 	start token.Position // position in the source of the start of the token
 	pos   token.Position // position in the source of the current rune
 
-	ErrorCount int // number of errors encountered
+	ErrCount int // number of errors encountered
 }
 
 const (
@@ -98,7 +98,7 @@ func (l *lexer) emit(t token.TokenType) {
 // and the current position, and increases the lexer's ErrorCount by 1.
 //
 func (l *lexer) error(err error) {
-	l.ErrorCount++
+	l.ErrCount++
 	if l.err != nil {
 		l.err(l.pos, err)
 	}
