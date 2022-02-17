@@ -30,52 +30,47 @@ func (l *lexer) run() {
 }
 
 func lexBase(l *lexer) {
-next:
-	r := l.peek()
-	switch {
-	case r == eof:
-		l.emit(token.EOF)
-		return // lexing finished
+	for {
+		r := l.peek()
+		switch {
+		case r == eof:
+			l.emit(token.EOF)
+			return // lexing finished
 
-	// ignore all space runes
-	case unicode.IsSpace(r):
-		consumeAllSpace(l)
+		// ignore all space runes
+		case unicode.IsSpace(r):
+			consumeAllSpace(l)
 
-	case r == '#':
-		lexComment(l)
+		case r == '#':
+			lexComment(l)
 
-	// command or statement
-	default:
-		goto statement
-	}
+		// command or statement
+		default:
+			if isAlphabet(r) {
+				consumeWord(l)
 
-	goto next
+				word := l.literal()
+				// statement starts with keyword
+				if token.IsKeyword(word) {
+					t := token.Lookup(word)
+					l.emit(t)
+					l.insertSemi = t.InsertSemi()
 
-statement:
-	if isAlphabet(r) {
-		consumeWord(l)
+					lexStmt(l)
+					goto insertSemi
+				}
 
-		word := l.literal()
-		// statement starts with keyword
-		if token.IsKeyword(word) {
-			t := token.Lookup(word)
-			l.emit(t)
-			l.insertSemi = t.InsertSemi()
+				// commands don't start with a keyword
+				l.emit(cmdOpLookup(word))
+			}
 
-			lexStmt(l)
-			goto insertSemi
+			lexCmd(l)
+
+			// semicolon insertion
+		insertSemi:
+			l.emit(token.SEMICOLON)
 		}
-
-		// commands don't start with a keyword
-		l.emit(cmdOpLookup(word))
 	}
-
-	lexCmd(l)
-
-	// semicolon insertion
-insertSemi:
-	l.emit(token.SEMICOLON)
-	goto next
 }
 
 func isAlphabet(r rune) bool {
@@ -83,63 +78,62 @@ func isAlphabet(r rune) bool {
 }
 
 func lexStmt(l *lexer) {
-next:
-	l.consume()
+	for {
+		l.consume()
 
-	switch {
-	case l.ch == '\n':
-		if l.insertSemi {
-			// if semicolon is inserted the statement ends
-			return
-		}
+		switch {
+		case l.ch == '\n':
+			if l.insertSemi {
+				// if semicolon is inserted the statement ends
+				return
+			}
 
-		// ignore all space
-		consumeAllSpace(l)
+			// ignore all space
+			consumeAllSpace(l)
 
-	case unicode.IsSpace(l.ch):
-		if l.insertSemi {
-			// semicolon to be inserted
-			// do not ignore newlines
-			consumeSpace(l)
-		} else {
+		case unicode.IsSpace(l.ch):
+			if l.insertSemi {
+				// semicolon to be inserted
+				// do not ignore newlines
+				consumeSpace(l)
+				break
+			}
+
 			// no semicolon to be inserted
 			// ignore all space runes
 			consumeAllSpace(l)
+
+		case isIdentStart(l.ch):
+			t := lexIdent(l)
+			l.insertSemi = t.InsertSemi()
+
+		case unicode.IsDigit(l.ch):
+			lexNum(l)
+			// semicolon should be inserted after a number
+			l.insertSemi = true
+
+		case l.ch == '"':
+			lexString(l)
+			// semicolon should be inserted after a string
+			l.insertSemi = true
+
+		// all operator starting runes are themselves operators
+		case token.IsOperator(string(l.ch)):
+			t := lexStmtOp(l)
+			l.insertSemi = t.InsertSemi()
+
+		case l.ch == '#':
+			// line comment
+			lexComment(l)
+
+		case l.ch == eof:
+			return // will be handled by lexBase
+
+		default:
+			// rune not supported inside statements
+			l.emit(token.ILLEGAL)
 		}
-
-	case isIdentStart(l.ch):
-		t := lexIdent(l)
-		l.insertSemi = t.InsertSemi()
-
-	case unicode.IsDigit(l.ch):
-		lexNum(l)
-		// semicolon should be inserted after a number
-		l.insertSemi = true
-
-	case l.ch == '"':
-		lexString(l)
-		// semicolon should be inserted after a string
-		l.insertSemi = true
-
-	// all operator starting runes are themselves operators
-	case token.IsOperator(string(l.ch)):
-		t := lexStmtOp(l)
-		l.insertSemi = t.InsertSemi()
-
-	case l.ch == '#':
-		// line comment
-		lexComment(l)
-
-	case l.ch == eof:
-		return // will be handled by lexBase
-
-	default:
-		// rune not supported inside statements
-		l.emit(token.ILLEGAL)
 	}
-
-	// loop till eof
-	goto next
 }
 
 func lexIdent(l *lexer) token.TokenType {
@@ -258,32 +252,31 @@ func lexStmtOp(l *lexer) token.TokenType {
 }
 
 func lexCmd(l *lexer) {
-next:
-	l.consume()
+	for {
+		l.consume()
 
-	switch {
-	case l.ch == '\n':
-		return // insertion in handled by lexBase
+		switch {
+		case l.ch == '\n':
+			return // insertion in handled by lexBase
 
-	case unicode.IsSpace(l.ch):
-		// ignore all space
-		consumeSpace(l)
+		case unicode.IsSpace(l.ch):
+			// ignore all space
+			consumeSpace(l)
 
-	case l.ch == '"':
-		lexString(l)
+		case l.ch == '"':
+			lexString(l)
 
-	case l.ch == '#':
-		lexComment(l)
+		case l.ch == '#':
+			lexComment(l)
 
-	case l.ch == eof:
-		return // will be handled by lex base
+		case l.ch == eof:
+			return // will be handled by lex base
 
-	default:
-		consumeWord(l)
-		l.emit(cmdOpLookup(l.literal()))
+		default:
+			consumeWord(l)
+			l.emit(cmdOpLookup(l.literal()))
+		}
 	}
-
-	goto next
 }
 
 func cmdOpLookup(s string) token.TokenType {
