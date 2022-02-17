@@ -22,6 +22,8 @@ import (
 
 var ErrUnexpectedEOF = fmt.Errorf("unexpected EOF")
 
+// run starts lexing the source in l and closes the lexer's token channel
+// when it is done.
 func (l *lexer) run() {
 	lexBase(l)
 	close(l.Tokens)
@@ -32,17 +34,25 @@ next:
 	r := l.peek()
 	switch {
 	case r == eof:
+		// emit semicolon before eof
 		l.emit(token.SEMICOLON)
 		l.emit(token.EOF)
+
+		// lexing finished
 		return
+
+	// ignore all space runes
 	case unicode.IsSpace(r):
 		consumeAllSpace(l)
+
 	case r == '#':
 		lexComment(l)
+
 	case isAlphabet(r):
 		consumeWord(l)
 
 		word := l.literal()
+		// statement starts with keyword
 		if token.IsKeyword(word) {
 			t := token.Lookup(word)
 			l.emit(t)
@@ -52,12 +62,14 @@ next:
 			break
 		}
 
+		// commands don't start with a keyword
 		l.emit(cmdOpLookup(word))
 		fallthrough
 	default:
 		lexCmd(l)
 	}
 
+	// loop till eof
 	goto next
 }
 
@@ -71,47 +83,58 @@ next:
 
 	switch {
 	case l.ch == '\n':
-		// semicolon insertion
+		// auto semicolon insertion
 		if l.insertSemi {
 			l.emit(token.SEMICOLON)
 			return
 		}
 
+		// ignore all space
 		consumeAllSpace(l)
-	case unicode.IsSpace(l.ch):
-		// ignore whitespace
-		consumeSpace(l)
 
-	// literals
+	case unicode.IsSpace(l.ch):
+		if l.insertSemi {
+			// semicolon to be inserted
+			// do not ignore newlines
+			consumeSpace(l)
+		} else {
+			// no semicolon to be inserted
+			// ignore all space runes
+			consumeAllSpace(l)
+		}
+
 	case isIdentStart(l.ch):
-		// identifier
 		t := lexIdent(l)
 		l.insertSemi = t.InsertSemi()
+
 	case unicode.IsDigit(l.ch):
-		// number
 		lexNum(l)
-		l.insertSemi = true
-	case l.ch == '"':
-		// format string
-		lexString(l)
+		// semicolon should be inserted after a number
 		l.insertSemi = true
 
-	// operators
+	case l.ch == '"':
+		lexString(l)
+		// semicolon should be inserted after a string
+		l.insertSemi = true
+
+	// all operator starting runes are themselves operators
 	case token.IsOperator(string(l.ch)):
 		t := lexStmtOp(l)
 		l.insertSemi = t.InsertSemi()
 
-	// special
 	case l.ch == '#':
 		// line comment
 		lexComment(l)
+
 	case l.ch == eof:
-		return
+		return // will be handled by lexBase
+
 	default:
-		// rune not supported
+		// rune not supported inside statements
 		l.emit(token.ILLEGAL)
 	}
 
+	// loop till eof
 	goto next
 }
 
@@ -120,6 +143,7 @@ func lexIdent(l *lexer) token.TokenType {
 		l.consume()
 	}
 
+	// lookup the token type of literal
 	t := token.Lookup(l.literal())
 	l.emit(t)
 	return t
@@ -234,23 +258,24 @@ next:
 	l.consume()
 
 	switch {
-	// semicolon insertion
 	case l.ch == '\n':
+		// auto semicolon insertion
 		l.emit(token.SEMICOLON)
 		return
 
 	case unicode.IsSpace(l.ch):
-		// ignore whitespace
+		// ignore all space
 		consumeSpace(l)
 
 	case l.ch == '"':
 		lexString(l)
 
-	// comment
 	case l.ch == '#':
 		lexComment(l)
+
 	case l.ch == eof:
-		return
+		return // will be handled by lex base
+
 	default:
 		consumeWord(l)
 		l.emit(cmdOpLookup(l.literal()))
@@ -281,6 +306,7 @@ func cmdOpLookup(s string) token.TokenType {
 }
 
 func lexComment(l *lexer) {
+	// consume tokens till newline or eof
 	for r := l.peek(); r != '\n' && r != eof; r = l.peek() {
 		l.consume()
 	}
@@ -289,10 +315,14 @@ func lexComment(l *lexer) {
 }
 
 func lexString(l *lexer) {
+	// consume tokens till '"' or eof
 	for r := l.peek(); r != '"' && r != eof; r = l.peek() {
 		l.consume()
 
+		// consume escape rune
 		if r == '\\' {
+
+			// eof is not an escape rune
 			if l.peek() == eof {
 				l.error(ErrUnexpectedEOF)
 				return
@@ -307,10 +337,11 @@ func lexString(l *lexer) {
 		return
 	}
 
-	l.consume()
+	l.consume() // consume the trailing '"'
 	l.emit(token.STRING)
 }
 
+// consumeSpace consumes all non newline space runes.
 func consumeSpace(l *lexer) {
 	for r := l.peek(); unicode.IsSpace(r) && r != '\n'; r = l.peek() {
 		l.consume()
@@ -319,6 +350,7 @@ func consumeSpace(l *lexer) {
 	l.ignore()
 }
 
+// consumeAllSpace consumes all space runes.
 func consumeAllSpace(l *lexer) {
 	for unicode.IsSpace(l.peek()) {
 		l.consume()
