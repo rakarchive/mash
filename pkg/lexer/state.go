@@ -74,7 +74,7 @@ func lexBase(l *lexer) {
 }
 
 func isAlphabet(r rune) bool {
-	return r > 'A' && r < 'Z' || r > 'a' && r < 'z'
+	return r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z'
 }
 
 func lexStmt(l *lexer) {
