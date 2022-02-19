@@ -22,9 +22,9 @@ import (
 
 // Various error values returned by lexer.consume.
 var (
-	ErrIllegalNUL = errors.New("illegal character NUL")
-	ErrIllegalBOM = errors.New("illegal byte order mark")
-	ErrIllegalEnc = errors.New("illegal utf-8 encoding")
+	ErrNUL = errors.New("illegal character NUL")
+	ErrBOM = errors.New("illegal byte order mark")
+	ErrEnc = errors.New("illegal utf-8 encoding")
 )
 
 // lexer represents a mash source string and related lexing information.
@@ -128,7 +128,7 @@ func (l *lexer) consume() {
 	r, w := rune(l.src[l.rdOffset]), 1
 	if r == 0 {
 		// null rune is illegal in source
-		l.error(ErrIllegalNUL)
+		l.error(ErrNUL)
 		goto advance
 	}
 
@@ -142,13 +142,13 @@ func (l *lexer) consume() {
 
 	if r == utf8.RuneError && w == 1 {
 		// illegal unicode encoding
-		l.error(ErrIllegalEnc)
+		l.error(ErrEnc)
 		goto advance
 	}
 
 	// bom is only legal as the first rune
 	if r == bom && l.offset > 0 {
-		l.error(ErrIllegalBOM)
+		l.error(ErrBOM)
 	}
 
 advance:

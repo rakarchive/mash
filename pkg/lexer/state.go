@@ -20,7 +20,7 @@ import (
 	"github.com/raklaptudirm/mash/pkg/token"
 )
 
-var ErrUnexpectedEOF = errors.New("unexpected EOF")
+var ErrEOF = errors.New("unexpected EOF")
 
 // run starts lexing the source in l and closes the lexer's token channel
 // when it is done.
@@ -319,7 +319,7 @@ func lexString(l *lexer) {
 
 			// eof is not an escape rune
 			if l.peek() == eof {
-				l.error(ErrUnexpectedEOF)
+				l.error(ErrEOF)
 				return
 			}
 
@@ -328,7 +328,7 @@ func lexString(l *lexer) {
 	}
 
 	if l.peek() == eof {
-		l.error(ErrUnexpectedEOF)
+		l.error(ErrEOF)
 		return
 	}
 
