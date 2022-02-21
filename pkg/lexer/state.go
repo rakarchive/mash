@@ -61,7 +61,9 @@ func lexBase(l *lexer) {
 				}
 
 				// commands don't start with a keyword
-				l.emit(cmdOpLookup(word))
+				// TODO: cleanup
+				l.rdOffset = l.offset
+				l.pos = l.start
 			}
 
 			lexCmd(l)
@@ -272,32 +274,43 @@ func lexCmd(l *lexer) {
 		case l.ch == eof:
 			return // will be handled by lex base
 
+		case isCmdOp(l.ch):
+			lexCmdOp(l)
+
 		default:
 			consumeWord(l)
-			l.emit(cmdOpLookup(l.literal()))
+			l.emit(token.STRING)
 		}
 	}
 }
 
-func cmdOpLookup(s string) token.TokenType {
-	switch s {
-	case "||":
-		return token.LOR
-	case "&&":
-		return token.LAND
-	case "!":
-		return token.NOT
-	case "<":
-		return token.LSS
-	case ">":
-		return token.GTR
-	case ">>":
-		return token.SHR
-	case "|":
-		return token.OR
+func isCmdOp(r rune) bool {
+	switch r {
+	case '|', '&', '!', '>':
+		return true
 	default:
-		return token.STRING
+		return false
 	}
+}
+
+func lexCmdOp(l *lexer) token.TokenType {
+	var t token.TokenType
+	switch l.ch {
+	case '|':
+		t = l.makeOp('|', token.LOR, token.OR)
+	case '&':
+		t = l.makeOp('&', token.LAND, token.AND)
+	case '!':
+		t = token.NOT
+	case '>':
+		t = l.makeOp('>', token.SHR, token.GTR)
+	default:
+		// unreachable
+		t = token.ILLEGAL
+	}
+
+	l.emit(t)
+	return t
 }
 
 func lexComment(l *lexer) {
