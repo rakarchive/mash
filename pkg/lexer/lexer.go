@@ -31,6 +31,7 @@ var (
 type lexer struct {
 	src string // source string
 	ch  rune   // current character
+	wd  int    // character width
 
 	insertSemi bool
 
@@ -42,6 +43,7 @@ type lexer struct {
 	rdOffset int // offsen of the current rune in the source
 
 	start token.Position // position in the source of the start of the token
+	prev  token.Position // previous position in the source
 	pos   token.Position // position in the source of the current rune
 
 	ErrCount int // number of errors encountered
@@ -122,6 +124,7 @@ func (l *lexer) peek() rune {
 func (l *lexer) consume() {
 	if l.atEnd() {
 		l.ch = eof
+		l.wd = 0
 		return
 	}
 
@@ -153,6 +156,9 @@ func (l *lexer) consume() {
 
 advance:
 	l.ch = r
+	l.wd = w
+
+	l.prev = l.pos
 
 	l.rdOffset += w
 	l.pos.Col += w
@@ -160,6 +166,11 @@ advance:
 	if r == '\n' {
 		l.pos.NextLine()
 	}
+}
+
+func (l *lexer) backup() {
+	l.rdOffset -= l.wd
+	l.pos = l.prev
 }
 
 // literal returns a sub-string from the source from offset to rdOffset.

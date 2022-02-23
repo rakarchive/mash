@@ -25,17 +25,18 @@ var ErrEOF = errors.New("unexpected EOF")
 // run starts lexing the source in l and closes the lexer's token channel
 // when it is done.
 func (l *lexer) run() {
-	lexBase(l)
+	lexBlock(l, eof, token.EOF)
 	close(l.Tokens)
 }
 
-func lexBase(l *lexer) {
+func lexBlock(l *lexer, eob rune, tok token.TokenType) {
 	for {
 		r := l.peek()
 		switch {
-		case r == eof:
-			l.emit(token.EOF)
-			return // lexing finished
+		case r == eob:
+			l.consume()
+			l.emit(tok)
+			return // block lexed
 
 		// ignore all space runes
 		case unicode.IsSpace(r):
@@ -56,7 +57,7 @@ func lexBase(l *lexer) {
 					l.emit(t)
 					l.insertSemi = t.InsertSemi()
 
-					lexStmt(l)
+					lexStmt(l, eob)
 					goto insertSemi
 				}
 
@@ -66,7 +67,7 @@ func lexBase(l *lexer) {
 				l.pos = l.start
 			}
 
-			lexCmd(l)
+			lexCmd(l, eob)
 
 			// semicolon insertion
 		insertSemi:
@@ -79,11 +80,15 @@ func isAlphabet(r rune) bool {
 	return r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z'
 }
 
-func lexStmt(l *lexer) {
+func lexStmt(l *lexer, eos rune) {
 	for {
 		l.consume()
 
 		switch {
+		case l.ch == eos:
+			l.backup()
+			return // will be handled by lexBlock
+
 		case l.ch == '\n':
 			if l.insertSemi {
 				// if semicolon is inserted the statement ends
@@ -109,6 +114,11 @@ func lexStmt(l *lexer) {
 			t := lexIdent(l)
 			l.insertSemi = t.InsertSemi()
 
+		case l.ch == '{':
+			l.emit(token.LBRACE)
+			lexBlock(l, '}', token.RBRACE)
+			l.insertSemi = true
+
 		case unicode.IsDigit(l.ch):
 			lexNum(l)
 			// semicolon should be inserted after a number
@@ -127,9 +137,6 @@ func lexStmt(l *lexer) {
 		case l.ch == '#':
 			// line comment
 			lexComment(l)
-
-		case l.ch == eof:
-			return // will be handled by lexBase
 
 		default:
 			// rune not supported inside statements
@@ -233,16 +240,12 @@ func lexStmtOp(l *lexer) token.TokenType {
 		t = token.LPAREN
 	case '[':
 		t = token.LBRACK
-	case '{':
-		t = token.LBRACE
 	case ',':
 		t = token.COMMA
 	case ')':
 		t = token.RPAREN
 	case ']':
 		t = token.RBRACK
-	case '}':
-		t = token.RBRACE
 	case ';':
 		t = token.SEMICOLON
 	case ':':
@@ -253,13 +256,17 @@ func lexStmtOp(l *lexer) token.TokenType {
 	return t
 }
 
-func lexCmd(l *lexer) {
+func lexCmd(l *lexer, eoc rune) {
 	for {
 		l.consume()
 
 		switch {
+		case l.ch == eoc:
+			l.backup()
+			return // will be handled by lexBlock
+
 		case l.ch == '\n':
-			return // insertion in handled by lexBase
+			return // insertion in handled by lexBlock
 
 		case unicode.IsSpace(l.ch):
 			// ignore all space
@@ -270,9 +277,6 @@ func lexCmd(l *lexer) {
 
 		case l.ch == '#':
 			lexComment(l)
-
-		case l.ch == eof:
-			return // will be handled by lex base
 
 		case isCmdOp(l.ch):
 			lexCmdOp(l)

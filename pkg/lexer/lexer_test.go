@@ -199,6 +199,7 @@ echo a command
 		{token.RBRACK, "]", 67, 5},
 		{token.SEMICOLON, "\n", 67, 6},
 		{token.LET, "let", 68, 1},
+		{token.SEMICOLON, "", 68, 5},
 		{token.RBRACE, "}", 68, 5},
 		{token.SEMICOLON, "\n", 68, 6},
 		{token.LET, "let", 69, 1},
@@ -223,6 +224,7 @@ echo a command
 
 	index := 0
 	for token := range lexer.Lex(input, nil) {
+		t.Logf("%s %s %v\n", &token.Position, token.Type, token.Literal)
 		if token.Type != tests[index].expectedType {
 			t.Fatalf("case %v: expected token type %q, got %q", index, tests[index].expectedType, token.Type)
 		}
