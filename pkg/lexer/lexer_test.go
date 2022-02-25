@@ -82,7 +82,7 @@ let :
 break
 
 echo a command
-||&&!>>>|
+||&&!|
 `
 
 	tests := []struct {
@@ -215,10 +215,8 @@ echo a command
 		{token.LOR, "||", 75, 1},
 		{token.LAND, "&&", 75, 3},
 		{token.NOT, "!", 75, 5},
-		{token.SHR, ">>", 75, 6},
-		{token.GTR, ">", 75, 8},
-		{token.OR, "|", 75, 9},
-		{token.SEMICOLON, "\n", 75, 10},
+		{token.OR, "|", 75, 6},
+		{token.SEMICOLON, "\n", 75, 7},
 		{token.EOF, "", 76, 1},
 	}
 

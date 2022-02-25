@@ -290,7 +290,7 @@ func lexCmd(l *lexer, eoc rune) {
 
 func isCmdOp(r rune) bool {
 	switch r {
-	case '|', '&', '!', '>':
+	case '|', '&', '!':
 		return true
 	default:
 		return false
@@ -306,8 +306,6 @@ func lexCmdOp(l *lexer) token.TokenType {
 		t = l.makeOp('&', token.LAND, token.AND)
 	case '!':
 		t = token.NOT
-	case '>':
-		t = l.makeOp('>', token.SHR, token.GTR)
 	default:
 		// unreachable
 		t = token.ILLEGAL
