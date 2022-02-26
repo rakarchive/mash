@@ -58,7 +58,10 @@ func lexBlock(l *lexer, eob rune, tok token.TokenType) {
 					l.insertSemi = t.InsertSemi()
 
 					lexStmt(l, eob)
-					goto insertSemi
+
+					// semicolon insertion
+					l.emit(token.SEMICOLON)
+					break
 				}
 
 				// commands don't start with a keyword
@@ -70,7 +73,6 @@ func lexBlock(l *lexer, eob rune, tok token.TokenType) {
 			lexCmd(l, eob)
 
 			// semicolon insertion
-		insertSemi:
 			l.emit(token.SEMICOLON)
 		}
 	}
