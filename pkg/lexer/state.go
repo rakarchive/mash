@@ -15,6 +15,7 @@ package lexer
 
 import (
 	"errors"
+	"fmt"
 	"unicode"
 
 	"github.com/raklaptudirm/mash/pkg/token"
@@ -126,7 +127,7 @@ func lexStmt(l *lexer, eos rune) {
 			// semicolon should be inserted after a number
 			l.insertSemi = true
 
-		case l.ch == '"':
+		case l.ch == '"' || l.ch == '\'' || l.ch == '`':
 			lexString(l)
 			// semicolon should be inserted after a string
 			l.insertSemi = true
@@ -395,30 +396,95 @@ func lexComment(l *lexer) {
 }
 
 func lexString(l *lexer) {
+	switch l.ch {
+	case '`':
+		lexRawString(l)
+	case '\'':
+		// TODO: add embedded expressions
+		lexEscapedString(l)
+	case '"':
+		lexEscapedString(l)
+	}
+}
+
+func lexRawString(l *lexer) {
+	// consume tokens till '`' or eof
+	for r := l.peek(); r != '`' && r != eof; r = l.peek() {
+		l.consume()
+	}
+
+	if l.peek() == eof {
+		l.error(ErrEOF)
+		l.emit(token.ILLEGAL)
+		return
+	}
+
+	l.consume() // consume the trailing '`'
+	l.emit(token.STRING)
+}
+
+func lexEscapedString(l *lexer) {
 	// consume tokens till '"' or eof
 	for r := l.peek(); r != '"' && r != eof; r = l.peek() {
 		l.consume()
 
 		// consume escape rune
 		if r == '\\' {
-
-			// eof is not an escape rune
-			if l.peek() == eof {
-				l.error(ErrEOF)
-				return
-			}
-
-			l.consume()
+			lexStringEscape(l, '"')
 		}
 	}
 
 	if l.peek() == eof {
 		l.error(ErrEOF)
+		l.emit(token.ILLEGAL)
 		return
 	}
 
 	l.consume() // consume the trailing '"'
 	l.emit(token.STRING)
+}
+
+var (
+	ErrEsc    = errors.New("invalid escape sequence")
+	ErrEscEnd = errors.New("unterminated escape sequence")
+)
+
+func lexStringEscape(l *lexer, t rune) {
+	var radix, n int
+	switch l.peek() {
+	case 'a', 'b', 'f', 'n', 'r', 't', 'v', '\\', t:
+		l.consume()
+		return
+	case '0', '1', '2', '3', '4', '5', '6', '7':
+		radix, n = 8, 3
+	case 'x':
+		radix, n = 16, 2
+	case 'u':
+		radix, n = 16, 4
+	case 'U':
+		radix, n = 16, 8
+	default:
+		l.error(ErrEsc)
+		return
+	}
+
+	l.consume()
+
+	for i := 0; i < n; i++ {
+		r := l.peek()
+		if r == eof || r == t {
+			fmt.Println(r)
+			l.error(ErrEscEnd)
+			return
+		}
+
+		if !isBaseDigit(r, radix) {
+			l.error(fmt.Errorf("illegal rune %#U in escape sequence", r))
+			return
+		}
+
+		l.consume()
+	}
 }
 
 // consumeSpace consumes all non newline space runes.
