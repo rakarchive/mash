@@ -163,12 +163,80 @@ func isIdentStart(r rune) bool {
 }
 
 func lexNum(l *lexer) {
-	// TODO: support more number types
-	for unicode.IsDigit(l.peek()) {
-		l.consume()
+	base := 10 // number base
+
+	decimalp := false // decimal point encountered?
+	exponent := false // exponent encountered?
+	constant := false // base spec encountered?
+
+	// 0b, 0o, or 0x base specs
+	if l.ch == '0' {
+		switch l.peek() {
+		case 'b':
+			base = 2
+			l.consume()
+		case 'o':
+			base = 8
+			l.consume()
+		case 'x':
+			base = 16
+			l.consume()
+		default:
+			base = 8
+		}
+
+		constant = true
 	}
 
+	for {
+		r := l.peek()
+		switch {
+		case isBaseDigit(r, base):
+			l.consume()
+
+		case r == '.':
+			if decimalp || exponent || constant {
+				goto tokenize
+			}
+
+			decimalp = true
+			l.consume()
+
+		case r == 'e':
+			if exponent || constant {
+				goto tokenize
+			}
+
+			exponent = true
+			l.consume()
+
+			s := l.peek()
+			if s == '+' || s == '-' {
+				l.consume()
+			}
+
+		default:
+			goto tokenize
+		}
+	}
+
+tokenize:
 	l.emit(token.FLOAT)
+}
+
+func isBaseDigit(r rune, b int) bool {
+	switch r {
+	case 'A', 'B', 'C', 'D', 'E', 'F', 'a', 'b', 'c', 'd', 'e', 'f':
+		return b == 16
+	case '8', '9':
+		return b >= 10
+	case '2', '3', '4', '5', '6', '7':
+		return b >= 8
+	case '0', '1':
+		return true
+	default:
+		return false
+	}
 }
 
 func (l *lexer) makeOp(target rune, pass token.TokenType, fail token.TokenType) token.TokenType {
