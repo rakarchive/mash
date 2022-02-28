@@ -2,6 +2,11 @@ package ast
 
 import "github.com/raklaptudirm/mash/pkg/token"
 
+type Statement interface {
+	Node
+	Statement()
+}
+
 type BlockStatement struct {
 	Statements []Statement
 }
