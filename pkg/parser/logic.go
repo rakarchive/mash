@@ -25,7 +25,7 @@ func (p *parser) parseStatement() ast.Statement {
 	case token.LET:
 		// parse expression
 	case token.IF:
-		// parse if
+		stmt = p.parseIfStatement()
 	case token.FOR:
 		// parse for
 	case token.STRING, token.NOT:
