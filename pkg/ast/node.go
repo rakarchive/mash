@@ -8,8 +8,3 @@ type Expression interface {
 	Node
 	Expression()
 }
-
-type Command interface {
-	Node
-	Command()
-}

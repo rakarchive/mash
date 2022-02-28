@@ -9,6 +9,10 @@ import (
 type parser struct {
 	tokens lexer.TokenStream
 
+	pTok token.TokenType
+	pPos token.Position
+	pLit string
+
 	tok token.TokenType
 	pos token.Position
 	lit string
@@ -25,15 +29,53 @@ func Parse(t lexer.TokenStream, e lexer.ErrorHandler) *ast.Program {
 		ErrorCount: 0,
 	}
 
+	// start token consumption
+	p.next()
+
 	return p.parseProgram()
+}
+
+func (p *parser) current() token.Token {
+	return token.Token{
+		Type:     p.tok,
+		Position: p.pos,
+		Literal:  p.lit,
+	}
+}
+
+func (p *parser) match(tokens ...token.TokenType) bool {
+	for _, tok := range tokens {
+		if p.check(tok) {
+			p.next()
+			return true
+		}
+	}
+
+	return false
+}
+
+func (p *parser) check(tok token.TokenType) bool {
+	if p.pTok == token.EOF {
+		return false
+	}
+
+	return tok == p.pTok
+}
+
+func (p *parser) atEnd() bool {
+	return p.pTok == token.EOF
 }
 
 func (p *parser) next() {
 	tok := <-p.tokens
 
-	p.tok = tok.Type
-	p.pos = tok.Position
-	p.lit = tok.Literal
+	p.tok = p.pTok
+	p.pos = p.pPos
+	p.lit = p.pLit
+
+	p.pTok = tok.Type
+	p.pPos = tok.Position
+	p.pLit = tok.Literal
 }
 
 func (p *parser) error(err error) {
