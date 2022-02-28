@@ -27,7 +27,7 @@ func (p *parser) parseStatement() ast.Statement {
 	case token.IF:
 		stmt = p.parseIfStatement()
 	case token.FOR:
-		// parse for
+		stmt = p.parseForStmt()
 	case token.STRING, token.NOT:
 		stmt = p.parseCmdStmt()
 	default:
@@ -83,6 +83,23 @@ func (p *parser) parseIfStatement() *ast.IfStatement {
 	}
 
 	return &stmt
+}
+
+func (p *parser) parseForStmt() *ast.ForStatement {
+	if !p.match(token.FOR) {
+		p.error(fmt.Errorf("expected %s, received %s", token.FOR, p.pTok))
+	}
+
+	var condition ast.Expression
+
+	if !p.check(token.LBRACE) {
+		condition = p.parseExpression()
+	}
+
+	return &ast.ForStatement{
+		Condition: condition,
+		BlockStmt: p.parseBlockStmt(),
+	}
 }
 
 func (p *parser) parseCmdStmt() *ast.CmdStatement {
