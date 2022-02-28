@@ -19,7 +19,7 @@ func (p *parser) parseProgram() *ast.Program {
 func (p *parser) parseStatement() ast.Statement {
 	switch p.tok {
 	case token.LBRACE:
-		// parse block
+		return p.parseBlock()
 	case token.LET:
 		// parse expression
 	case token.IF:
@@ -33,4 +33,13 @@ func (p *parser) parseStatement() ast.Statement {
 	}
 
 	return nil
+}
+
+func (p *parser) parseBlock() *ast.BlockStatement {
+	block := &ast.BlockStatement{}
+
+	for p.next(); p.tok != token.RBRACE; p.next() {
+		block.Statements = append(block.Statements, p.parseStatement())
+	}
+	return block
 }
