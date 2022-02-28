@@ -66,9 +66,8 @@ func (p *parser) parseLetStmt() *ast.LetStatement {
 		p.error(fmt.Errorf("expected %s, received %s", token.LET, p.pTok))
 	}
 
-	// TODO: proper let statement parsing
 	let := &ast.LetStatement{
-		Expression: p.parseExpression(),
+		Expression: p.parseExprAssign(),
 	}
 
 	return let
