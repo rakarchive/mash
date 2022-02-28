@@ -9,7 +9,9 @@ import (
 type parser struct {
 	tokens lexer.TokenStream
 
-	curToken token.Token
+	tok token.TokenType
+	pos token.Position
+	lit string
 
 	err lexer.ErrorHandler
 
@@ -27,12 +29,16 @@ func Parse(t lexer.TokenStream, e lexer.ErrorHandler) *ast.Program {
 }
 
 func (p *parser) next() {
-	p.curToken = <-p.tokens
+	tok := <-p.tokens
+
+	p.tok = tok.Type
+	p.pos = tok.Position
+	p.lit = tok.Literal
 }
 
 func (p *parser) error(err error) {
 	p.ErrorCount++
 	if p.err != nil {
-		p.err(p.curToken.Position, err)
+		p.err(p.pos, err)
 	}
 }

@@ -10,14 +10,14 @@ import (
 func (p *parser) parseProgram() *ast.Program {
 	program := &ast.Program{}
 
-	for p.next(); p.curToken.Type != token.EOF; p.next() {
+	for p.next(); p.tok != token.EOF; p.next() {
 		program.Statements = append(program.Statements, p.parseStatement())
 	}
 	return program
 }
 
 func (p *parser) parseStatement() ast.Statement {
-	switch p.curToken.Type {
+	switch p.tok {
 	case token.LBRACE:
 		// parse block
 	case token.LET:
@@ -29,7 +29,7 @@ func (p *parser) parseStatement() ast.Statement {
 	case token.STRING:
 		// parse command
 	default:
-		p.error(fmt.Errorf("illegal token %#v at line start", p.curToken.Type.String()))
+		p.error(fmt.Errorf("illegal token %#v at line start", p.tok.String()))
 	}
 
 	return nil
