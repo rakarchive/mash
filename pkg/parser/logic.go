@@ -23,7 +23,7 @@ func (p *parser) parseStatement() ast.Statement {
 	case token.LBRACE:
 		stmt = p.parseBlockStmt()
 	case token.LET:
-		// parse expression
+		stmt = p.parseLetStmt()
 	case token.IF:
 		stmt = p.parseIfStatement()
 	case token.FOR:
@@ -59,6 +59,19 @@ func (p *parser) parseBlockStmt() *ast.BlockStatement {
 	}
 
 	return block
+}
+
+func (p *parser) parseLetStmt() *ast.LetStatement {
+	if !p.match(token.LET) {
+		p.error(fmt.Errorf("expected %s, received %s", token.LET, p.pTok))
+	}
+
+	// TODO: proper let statement parsing
+	let := &ast.LetStatement{
+		Expression: p.parseExpression(),
+	}
+
+	return let
 }
 
 func (p *parser) parseIfStatement() *ast.IfStatement {
