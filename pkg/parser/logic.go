@@ -46,9 +46,18 @@ func (p *parser) parseStatement() ast.Statement {
 func (p *parser) parseBlockStmt() *ast.BlockStatement {
 	block := &ast.BlockStatement{}
 
-	for p.next(); p.tok != token.RBRACE; p.next() {
+	if !p.match(token.LBRACE) {
+		p.error(fmt.Errorf("expected %s, received %s", token.LBRACE, p.pTok))
+	}
+
+	for p.pTok != token.RBRACE && !p.atEnd() {
 		block.Statements = append(block.Statements, p.parseStatement())
 	}
+
+	if !p.match(token.RBRACE) {
+		p.error(fmt.Errorf("expected %s, received %s", token.RBRACE, p.pTok))
+	}
+
 	return block
 }
 
