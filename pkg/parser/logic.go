@@ -52,6 +52,30 @@ func (p *parser) parseBlockStmt() *ast.BlockStatement {
 	return block
 }
 
+func (p *parser) parseIfStatement() *ast.IfStatement {
+	if !p.match(token.IF) {
+		p.error(fmt.Errorf("expected %s, received %s", token.IF, p.pTok))
+	}
+
+	stmt := ast.IfStatement{
+		Condition: p.parseExpression(),
+		BlockStmt: p.parseBlockStmt(),
+	}
+
+	for p.match(token.ELIF) {
+		stmt.ElifBlock = append(stmt.ElifBlock, ast.ElifBlock{
+			Condition: p.parseExpression(),
+			BlockStmt: p.parseBlockStmt(),
+		})
+	}
+
+	if p.match(token.ELSE) {
+		stmt.ElseBlock = p.parseBlockStmt()
+	}
+
+	return &stmt
+}
+
 func (p *parser) parseCmdStmt() *ast.CmdStatement {
 	return &ast.CmdStatement{
 		Command: p.parseCommand(),
