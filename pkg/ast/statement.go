@@ -1,7 +1,5 @@
 package ast
 
-import "github.com/raklaptudirm/mash/pkg/token"
-
 type Statement interface {
 	Node
 	Statement()
@@ -38,8 +36,6 @@ func (f *ForStatement) Node()      {}
 func (f *ForStatement) Statement() {}
 
 type LetStatement struct {
-	AssignOp   token.Token
-	Assignable Expression
 	Expression Expression
 }
 
