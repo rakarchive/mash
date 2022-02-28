@@ -38,7 +38,7 @@ func (f *ForStatement) Node()      {}
 func (f *ForStatement) Statement() {}
 
 type LetStatement struct {
-	AssignOp   token.TokenType
+	AssignOp   token.Token
 	Assignable Expression
 	Expression Expression
 }
