@@ -23,7 +23,7 @@ func Parse(t lexer.TokenStream, e lexer.ErrorHandler) *ast.Program {
 		ErrorCount: 0,
 	}
 
-	return p.ParseProgram()
+	return p.parseProgram()
 }
 
 func (p *parser) next() {
