@@ -42,3 +42,12 @@ type ArrayLiteral struct {
 func (a *ArrayLiteral) Node()       {}
 func (a *ArrayLiteral) Literal()    {}
 func (a *ArrayLiteral) Expression() {}
+
+type ObjectLiteral struct {
+	Token    token.Token
+	Elements map[Expression]Expression
+}
+
+func (o *ObjectLiteral) Node()       {}
+func (o *ObjectLiteral) Literal()    {}
+func (o *ObjectLiteral) Expression() {}
