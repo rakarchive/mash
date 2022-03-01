@@ -78,9 +78,9 @@ func (p *parser) next() {
 	p.pLit = tok.Literal
 }
 
-func (p *parser) error(err error) {
+func (p *parser) error(pos token.Position, err error) {
 	p.ErrorCount++
 	if p.err != nil {
-		p.err(p.pos, err)
+		p.err(pos, err)
 	}
 }

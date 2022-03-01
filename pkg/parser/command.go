@@ -74,7 +74,7 @@ func (p *parser) parseCmdPipe() ast.Command {
 
 func (p *parser) parseCmdLit() ast.Command {
 	if !p.match(token.STRING) {
-		p.error(fmt.Errorf("unexpected toke %s", p.pTok))
+		p.error(p.pPos, fmt.Errorf("unexpected toke %s", p.pTok))
 	}
 
 	lit := &ast.LiteralCommand{

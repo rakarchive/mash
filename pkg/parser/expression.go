@@ -20,7 +20,7 @@ func (p *parser) parseExprAssign() ast.Expression {
 			}
 		}
 
-		p.error(fmt.Errorf("invalid assignment target"))
+		p.error(p.pos, fmt.Errorf("invalid assignment target"))
 	}
 
 	return expr
@@ -137,7 +137,7 @@ func (p *parser) parseExprLiteral() ast.Expression {
 	case p.match(token.FLOAT):
 		val, err := strconv.ParseFloat(p.current().Literal, 64)
 		if err != nil {
-			p.error(err)
+			p.error(p.pos, err)
 		}
 
 		return &ast.NumberLiteral{
@@ -147,7 +147,7 @@ func (p *parser) parseExprLiteral() ast.Expression {
 	case p.match(token.STRING):
 		val, err := strconv.Unquote(p.current().Literal)
 		if err != nil {
-			p.error(err)
+			p.error(p.pos, err)
 		}
 
 		return &ast.StringLiteral{
@@ -162,7 +162,7 @@ func (p *parser) parseExprLiteral() ast.Expression {
 		}
 
 		if !p.match(token.RPAREN) {
-			p.error(fmt.Errorf("expected %s, received %s", token.RPAREN, p.pTok))
+			p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.RPAREN, p.pTok))
 		}
 
 		return group

@@ -31,13 +31,13 @@ func (p *parser) parseStatement() ast.Statement {
 	case token.STRING, token.NOT:
 		stmt = p.parseCmdStmt()
 	default:
-		p.error(fmt.Errorf("illegal token %s at line start", p.pTok))
+		p.error(p.pPos, fmt.Errorf("illegal token %s at line start", p.pTok))
 		p.next()
 		return nil
 	}
 
 	if !p.match(token.SEMICOLON) {
-		p.error(fmt.Errorf("unexpected token %s, expected %s", p.pTok, token.SEMICOLON))
+		p.error(p.pPos, fmt.Errorf("unexpected token %s, expected %s", p.pTok, token.SEMICOLON))
 	}
 
 	return stmt
@@ -47,7 +47,7 @@ func (p *parser) parseBlockStmt() *ast.BlockStatement {
 	block := &ast.BlockStatement{}
 
 	if !p.match(token.LBRACE) {
-		p.error(fmt.Errorf("expected %s, received %s", token.LBRACE, p.pTok))
+		p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.LBRACE, p.pTok))
 	}
 
 	for p.pTok != token.RBRACE && !p.atEnd() {
@@ -55,7 +55,7 @@ func (p *parser) parseBlockStmt() *ast.BlockStatement {
 	}
 
 	if !p.match(token.RBRACE) {
-		p.error(fmt.Errorf("expected %s, received %s", token.RBRACE, p.pTok))
+		p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.RBRACE, p.pTok))
 	}
 
 	return block
@@ -63,7 +63,7 @@ func (p *parser) parseBlockStmt() *ast.BlockStatement {
 
 func (p *parser) parseLetStmt() *ast.LetStatement {
 	if !p.match(token.LET) {
-		p.error(fmt.Errorf("expected %s, received %s", token.LET, p.pTok))
+		p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.LET, p.pTok))
 	}
 
 	let := &ast.LetStatement{
@@ -75,7 +75,7 @@ func (p *parser) parseLetStmt() *ast.LetStatement {
 
 func (p *parser) parseIfStatement() *ast.IfStatement {
 	if !p.match(token.IF) {
-		p.error(fmt.Errorf("expected %s, received %s", token.IF, p.pTok))
+		p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.IF, p.pTok))
 	}
 
 	stmt := ast.IfStatement{
@@ -99,7 +99,7 @@ func (p *parser) parseIfStatement() *ast.IfStatement {
 
 func (p *parser) parseForStmt() *ast.ForStatement {
 	if !p.match(token.FOR) {
-		p.error(fmt.Errorf("expected %s, received %s", token.FOR, p.pTok))
+		p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.FOR, p.pTok))
 	}
 
 	var condition ast.Expression
