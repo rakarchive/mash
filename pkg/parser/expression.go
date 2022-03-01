@@ -155,7 +155,35 @@ func (p *parser) parseExprLiteral() ast.Expression {
 			Value: val,
 		}
 	case p.match(token.LBRACK):
-		// TODO: parse arrays and objects
+		lit := &ast.ArrayLiteral{
+			Token:    p.current(),
+			Elements: []ast.Expression{},
+		}
+
+		if p.match(token.RBRACK) {
+			return lit
+		}
+
+		for {
+			lit.Elements = append(lit.Elements, p.parseExpression())
+
+			if p.match(token.COMMA) {
+				if p.match(token.RBRACK) {
+					break
+				}
+
+				continue
+			}
+
+			if p.match(token.RBRACK) {
+				break
+			}
+
+			p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.RBRACK, p.pTok))
+			break
+		}
+
+		return lit
 	case p.match(token.LPAREN):
 		group := &ast.GroupExpression{
 			Right: p.parseExpression(),

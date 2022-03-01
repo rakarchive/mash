@@ -33,3 +33,12 @@ type FunctionLiteral struct {
 func (n *FunctionLiteral) Node()       {}
 func (n *FunctionLiteral) Literal()    {}
 func (n *FunctionLiteral) Expression() {}
+
+type ArrayLiteral struct {
+	Token    token.Token
+	Elements []Expression
+}
+
+func (a *ArrayLiteral) Node()       {}
+func (a *ArrayLiteral) Literal()    {}
+func (a *ArrayLiteral) Expression() {}

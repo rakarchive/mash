@@ -97,5 +97,5 @@ array = LBRACK [ expression { COMMA expression } [ COMMA ] ] RBRACK ;
 
 (* objects are keyed list of valued *)
 (* [ a: 1, b: 2, c: 3, d: 4 ] *)
-object = LBRACK [ object_key { COMMA object_key } [ COMMA ] ] RBRACK ;
+object = OBJ LBRACK [ object_key { COMMA object_key } [ COMMA ] ] RBRACK ;
 object_key = expression COLON expression ;
