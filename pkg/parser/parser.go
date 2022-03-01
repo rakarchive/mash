@@ -73,6 +73,10 @@ func (p *parser) next() {
 	p.pos = p.pPos
 	p.lit = p.pLit
 
+	for tok.Type == token.COMMENT {
+		tok = <-p.tokens
+	}
+
 	p.pTok = tok.Type
 	p.pPos = tok.Position
 	p.pLit = tok.Literal
