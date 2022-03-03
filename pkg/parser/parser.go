@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/raklaptudirm/mash/pkg/ast"
 	"github.com/raklaptudirm/mash/pkg/lexer"
 	"github.com/raklaptudirm/mash/pkg/token"
@@ -33,6 +35,12 @@ func Parse(t lexer.TokenStream, e lexer.ErrorHandler) *ast.Program {
 	p.next()
 
 	return p.parseProgram()
+}
+
+func (p *parser) consume(t token.TokenType) {
+	if !p.match(t) {
+		p.error(p.pPos, fmt.Errorf("expected %s, received %s", t, p.pTok))
+	}
 }
 
 func (p *parser) current() token.Token {

@@ -134,9 +134,7 @@ func (p *parser) parseExprCall() ast.Expression {
 				Expr: expr,
 			}
 
-			if !p.match(token.RBRACK) {
-				p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.RBRACK, p.pTok))
-			}
+			p.consume(token.RBRACK)
 		case p.match(token.LPAREN):
 			args := []ast.Expression{}
 			tok := p.current()
@@ -145,9 +143,7 @@ func (p *parser) parseExprCall() ast.Expression {
 				args = append(args, p.parseExpression())
 
 				if !p.match(token.COMMA) {
-					if !p.match(token.RPAREN) {
-						p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.RPAREN, p.pTok))
-					}
+					p.consume(token.RPAREN)
 
 					break
 				}
@@ -201,10 +197,7 @@ func (p *parser) parseExprLiteral() ast.Expression {
 			Elements: make(map[ast.Expression]ast.Expression),
 		}
 
-		if !p.match(token.LBRACK) {
-			p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.LBRACK, p.pTok))
-			return nil
-		}
+		p.consume(token.LBRACK)
 
 		if p.match(token.RBRACK) {
 			return lit
@@ -213,10 +206,7 @@ func (p *parser) parseExprLiteral() ast.Expression {
 		for {
 			index := p.parseExpression()
 
-			if !p.match(token.COLON) {
-				p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.COLON, p.pTok))
-				break
-			}
+			p.consume(token.COLON)
 
 			lit.Elements[index] = p.parseExpression()
 
@@ -228,11 +218,7 @@ func (p *parser) parseExprLiteral() ast.Expression {
 				continue
 			}
 
-			if p.match(token.RBRACK) {
-				break
-			}
-
-			p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.RBRACK, p.pTok))
+			p.consume(token.RBRACK)
 			break
 		}
 
@@ -258,11 +244,7 @@ func (p *parser) parseExprLiteral() ast.Expression {
 				continue
 			}
 
-			if p.match(token.RBRACK) {
-				break
-			}
-
-			p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.RBRACK, p.pTok))
+			p.consume(token.RBRACK)
 			break
 		}
 
@@ -272,9 +254,7 @@ func (p *parser) parseExprLiteral() ast.Expression {
 			Right: p.parseExpression(),
 		}
 
-		if !p.match(token.RPAREN) {
-			p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.RPAREN, p.pTok))
-		}
+		p.consume(token.RPAREN)
 
 		return group
 	}

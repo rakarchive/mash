@@ -36,35 +36,25 @@ func (p *parser) parseStatement() ast.Statement {
 		return nil
 	}
 
-	if !p.match(token.SEMICOLON) {
-		p.error(p.pPos, fmt.Errorf("unexpected token %s, expected %s", p.pTok, token.SEMICOLON))
-	}
-
+	p.consume(token.SEMICOLON)
 	return stmt
 }
 
 func (p *parser) parseBlockStmt() *ast.BlockStatement {
 	block := &ast.BlockStatement{}
 
-	if !p.match(token.LBRACE) {
-		p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.LBRACE, p.pTok))
-	}
+	p.consume(token.LBRACE)
 
 	for p.pTok != token.RBRACE && !p.atEnd() {
 		block.Statements = append(block.Statements, p.parseStatement())
 	}
 
-	if !p.match(token.RBRACE) {
-		p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.RBRACE, p.pTok))
-	}
-
+	p.consume(token.RBRACE)
 	return block
 }
 
 func (p *parser) parseLetStmt() *ast.LetStatement {
-	if !p.match(token.LET) {
-		p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.LET, p.pTok))
-	}
+	p.consume(token.LET)
 
 	let := &ast.LetStatement{
 		Expression: p.parseExprAssign(),
@@ -74,9 +64,7 @@ func (p *parser) parseLetStmt() *ast.LetStatement {
 }
 
 func (p *parser) parseIfStatement() *ast.IfStatement {
-	if !p.match(token.IF) {
-		p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.IF, p.pTok))
-	}
+	p.consume(token.IF)
 
 	stmt := ast.IfStatement{
 		Condition: p.parseExpression(),
@@ -98,9 +86,7 @@ func (p *parser) parseIfStatement() *ast.IfStatement {
 }
 
 func (p *parser) parseForStmt() *ast.ForStatement {
-	if !p.match(token.FOR) {
-		p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.FOR, p.pTok))
-	}
+	p.consume(token.FOR)
 
 	var condition ast.Expression
 
