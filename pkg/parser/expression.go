@@ -113,14 +113,55 @@ func (p *parser) parseExprPrec5() ast.Expression {
 func (p *parser) parseExprUnary() ast.Expression {
 	if p.match(token.ADD, token.SUB, token.XOR, token.NOT) {
 		tok := p.current()
-		right := p.parseExprLiteral()
+		right := p.parseExprCall()
 		return &ast.UnaryExpression{
 			Operator: tok,
 			Right:    right,
 		}
 	}
 
-	return p.parseExprLiteral()
+	return p.parseExprCall()
+}
+
+func (p *parser) parseExprCall() ast.Expression {
+	expr := p.parseExprLiteral()
+
+	for {
+		switch {
+		case p.match(token.LBRACK):
+			expr = &ast.GetExpression{
+				Name: p.parseExpression(),
+				Expr: expr,
+			}
+
+			if !p.match(token.RBRACK) {
+				p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.RBRACK, p.pTok))
+			}
+		case p.match(token.LPAREN):
+			args := []ast.Expression{}
+			tok := p.current()
+
+			for !p.match(token.RPAREN) {
+				args = append(args, p.parseExpression())
+
+				if !p.match(token.COMMA) {
+					if !p.match(token.RPAREN) {
+						p.error(p.pPos, fmt.Errorf("expected %s, received %s", token.RPAREN, p.pTok))
+					}
+
+					break
+				}
+			}
+
+			expr = &ast.CallExpression{
+				Callee:      expr,
+				Parenthesis: tok,
+				Arguments:   args,
+			}
+		default:
+			return expr
+		}
+	}
 }
 
 func (p *parser) parseExprLiteral() ast.Expression {

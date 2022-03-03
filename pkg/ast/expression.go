@@ -64,7 +64,7 @@ func (c *CallExpression) Node()       {}
 func (c *CallExpression) Expression() {}
 
 type GetExpression struct {
-	Name token.Token
+	Name Expression
 	Expr Expression
 }
 

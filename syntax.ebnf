@@ -63,12 +63,12 @@ prec4 = prec5 { op_prec4 prec5 } ;
 prec5 = unary { op_prec5 unary } ;
 
 (* unary operators *)
-unary = op_unary unary | primary | complex ;
+unary = op_unary unary | call ;
+
+call = primary { reference } ;
 
 (* primary is a basic constant literal or reference *)
-primary = FLOAT | STRING | reference ;
-(* complexes are more complicated literal or expression *)
-complex = function | array | object | LPAREN expression RPAREN ;
+primary = FLOAT | STRING | IDENT | function | array | object | LPAREN expression RPAREN ;
 
 (* various operators *)
 op_prec1 = LOR ;
@@ -80,11 +80,11 @@ op_unary = ADD | SUB | XOR | NOT ;
 
 (* assignable is a symbol to which an expression can be assigned *)
 (* can be expanded in future to add stuff like array destructing *)
-assignable = reference ;
+assignable = call ;
 
 (* reference indexes a value from a complex *)
 (* a a[b] a[b][c] *)
-reference = IDENT { LBRACK expression RBRACK | function_call } ;
+reference = LBRACK expression RBRACK | function_call ;
 function_call = LPAREN [ expression { COMMA expression } [ COMMA ] ] RPAREN ;
 
 (* a function is an anonymous function expression *)
