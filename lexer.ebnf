@@ -115,6 +115,7 @@ ELIF = "elif" ;
 ELSE = "else" ;
 
 LET  = "let" ;
+OBJ  = "obj" ;
 FUNC = "func" ;
 
 BREAK    = "break" ;
