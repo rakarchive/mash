@@ -35,7 +35,7 @@ type lexer struct {
 
 	insertSemi bool
 
-	Tokens chan token.Token // lexer token channel
+	Tokens TokenStream // lexer token channel
 
 	err ErrorHandler // lexer errors handling function
 
@@ -59,10 +59,12 @@ const (
 //
 type ErrorHandler func(token.Position, error)
 
+type TokenStream chan token.Token
+
 // Lex starts the lexing of src, using err to handle any lexer errors, and
 // returns the lexer's token channel.
 //
-func Lex(src string, err ErrorHandler) chan token.Token {
+func Lex(src string, err ErrorHandler) TokenStream {
 	origin := token.Position{
 		Line: 1,
 		Col:  1,
@@ -71,7 +73,7 @@ func Lex(src string, err ErrorHandler) chan token.Token {
 	l := &lexer{
 		src: src,
 
-		Tokens: make(chan token.Token),
+		Tokens: make(TokenStream),
 
 		err: err,
 

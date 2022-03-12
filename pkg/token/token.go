@@ -98,6 +98,7 @@ const (
 	ELSE
 
 	LET
+	OBJ
 	FUNC
 
 	BREAK
@@ -173,6 +174,7 @@ var tokens = [...]string{
 	ELSE: "else",
 
 	LET:  "let",
+	OBJ:  "obj",
 	FUNC: "func",
 
 	BREAK:    "break",
