@@ -7,16 +7,23 @@ import (
 	"github.com/raklaptudirm/mash/pkg/token"
 )
 
-func (p *parser) parseCommand() ast.Command {
+func (p *parser) parseCommand() (ast.Command, error) {
 	return p.parseCmdLor()
 }
 
-func (p *parser) parseCmdLor() ast.Command {
-	expr := p.parseCmdAnd()
+func (p *parser) parseCmdLor() (ast.Command, error) {
+	expr, err := p.parseCmdAnd()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(token.LOR) {
 		tok := p.current()
-		right := p.parseCmdAnd()
+		right, err := p.parseCmdAnd()
+		if err != nil {
+			return nil, err
+		}
+
 		expr = &ast.LogicalCommand{
 			Left:     expr,
 			Operator: tok,
@@ -24,15 +31,22 @@ func (p *parser) parseCmdLor() ast.Command {
 		}
 	}
 
-	return expr
+	return expr, nil
 }
 
-func (p *parser) parseCmdAnd() ast.Command {
-	expr := p.parseCmdNot()
+func (p *parser) parseCmdAnd() (ast.Command, error) {
+	expr, err := p.parseCmdNot()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(token.LAND) {
 		tok := p.current()
-		right := p.parseCmdNot()
+		right, err := p.parseCmdNot()
+		if err != nil {
+			return nil, err
+		}
+
 		expr = &ast.LogicalCommand{
 			Left:     expr,
 			Operator: tok,
@@ -40,28 +54,39 @@ func (p *parser) parseCmdAnd() ast.Command {
 		}
 	}
 
-	return expr
+	return expr, nil
 }
 
-func (p *parser) parseCmdNot() ast.Command {
+func (p *parser) parseCmdNot() (ast.Command, error) {
 	if p.match(token.NOT) {
 		tok := p.current()
-		right := p.parseCmdPipe()
+		right, err := p.parseCmdPipe()
+		if err != nil {
+			return nil, err
+		}
+
 		return &ast.UnaryCommand{
 			Operator: tok,
 			Right:    right,
-		}
+		}, nil
 	}
 
 	return p.parseCmdPipe()
 }
 
-func (p *parser) parseCmdPipe() ast.Command {
-	expr := p.parseCmdLit()
+func (p *parser) parseCmdPipe() (ast.Command, error) {
+	expr, err := p.parseCmdLit()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(token.OR) {
 		tok := p.current()
-		right := p.parseCmdLit()
+		right, err := p.parseCmdLit()
+		if err != nil {
+			return nil, err
+		}
+
 		expr = &ast.BinaryCommand{
 			Left:     expr,
 			Operator: tok,
@@ -69,12 +94,12 @@ func (p *parser) parseCmdPipe() ast.Command {
 		}
 	}
 
-	return expr
+	return expr, nil
 }
 
-func (p *parser) parseCmdLit() ast.Command {
+func (p *parser) parseCmdLit() (ast.Command, error) {
 	if !p.match(token.STRING) {
-		p.error(p.pPos, fmt.Errorf("unexpected toke %s", p.pTok))
+		return nil, fmt.Errorf("unexpected token %s", p.pTok)
 	}
 
 	lit := &ast.LiteralCommand{
@@ -85,5 +110,5 @@ func (p *parser) parseCmdLit() ast.Command {
 		lit.Args = append(lit.Args, p.current())
 	}
 
-	return lit
+	return lit, nil
 }
