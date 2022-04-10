@@ -1,6 +1,6 @@
 package ast
 
-import "github.com/raklaptudirm/mash/pkg/token"
+import "laptudirm.com/x/mash/pkg/token"
 
 type Command interface {
 	Node

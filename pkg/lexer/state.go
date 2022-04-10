@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"unicode"
 
-	"github.com/raklaptudirm/mash/pkg/token"
+	"laptudirm.com/x/mash/pkg/token"
 )
 
 var ErrEOF = errors.New("unexpected EOF")

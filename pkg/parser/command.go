@@ -3,8 +3,8 @@ package parser
 import (
 	"fmt"
 
-	"github.com/raklaptudirm/mash/pkg/ast"
-	"github.com/raklaptudirm/mash/pkg/token"
+	"laptudirm.com/x/mash/pkg/ast"
+	"laptudirm.com/x/mash/pkg/token"
 )
 
 func (p *parser) parseCommand() (ast.Command, error) {

@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"github.com/raklaptudirm/mash/pkg/ast"
-	"github.com/raklaptudirm/mash/pkg/lexer"
-	"github.com/raklaptudirm/mash/pkg/token"
+	"laptudirm.com/x/mash/pkg/ast"
+	"laptudirm.com/x/mash/pkg/lexer"
+	"laptudirm.com/x/mash/pkg/token"
 )
 
 type parser struct {
