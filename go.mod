@@ -1,3 +1,3 @@
-module github.com/raklaptudirm/mash
+module laptudirm.com/x/mash
 
-go 1.17
+go 1.18

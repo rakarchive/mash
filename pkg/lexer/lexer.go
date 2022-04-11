@@ -17,7 +17,7 @@ import (
 	"errors"
 	"unicode/utf8"
 
-	"github.com/raklaptudirm/mash/pkg/token"
+	"laptudirm.com/x/mash/pkg/token"
 )
 
 // Various error values returned by lexer.consume.

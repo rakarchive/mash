@@ -3,105 +3,181 @@ package parser
 import (
 	"fmt"
 
-	"github.com/raklaptudirm/mash/pkg/ast"
-	"github.com/raklaptudirm/mash/pkg/token"
+	"laptudirm.com/x/mash/pkg/ast"
+	"laptudirm.com/x/mash/pkg/token"
 )
 
-func (p *parser) parseProgram() *ast.Program {
+// program = { statement } EOF
+func (p *parser) parseProgram() (*ast.Program, error) {
 	program := &ast.Program{}
 
 	for !p.atEnd() {
-		program.Statements = append(program.Statements, p.parseStatement())
+		stmt, err := p.parseStatement()
+		if err != nil {
+			p.error(p.pPos, err)
+			// sync parser to avoid cascading errors
+			p.synchronize()
+			continue
+		}
+
+		program.Statements = append(program.Statements, stmt)
 	}
-	return program
+	return program, nil
 }
 
-func (p *parser) parseStatement() ast.Statement {
+// statement = ( blockStmt | letStmt | ifStmt | cmdStmt ) ";"
+func (p *parser) parseStatement() (ast.Statement, error) {
 	var stmt ast.Statement
+	var err error
 
 	switch p.pTok {
 	case token.LBRACE:
-		stmt = p.parseBlockStmt()
+		stmt, err = p.parseBlockStmt()
 	case token.LET:
-		stmt = p.parseLetStmt()
+		stmt, err = p.parseLetStmt()
 	case token.IF:
-		stmt = p.parseIfStatement()
+		stmt, err = p.parseIfStatement()
 	case token.FOR:
-		stmt = p.parseForStmt()
+		stmt, err = p.parseForStmt()
 	case token.STRING, token.NOT:
-		stmt = p.parseCmdStmt()
+		stmt, err = p.parseCmdStmt()
 	default:
-		p.error(p.pPos, fmt.Errorf("illegal token %s at line start", p.pTok))
-		p.next()
-		return nil
+		return nil, fmt.Errorf("illegal token %s at line start", p.pTok)
 	}
 
-	p.consume(token.SEMICOLON)
-	return stmt
+	// only check for semicolons if no errors have occurred
+	if err == nil && !p.match(token.SEMICOLON) {
+		return nil, fmt.Errorf("expected ';', received %s", p.pTok)
+	}
+	return stmt, err
 }
 
-func (p *parser) parseBlockStmt() *ast.BlockStatement {
+// blockStmt = "{" { statement } "}"
+func (p *parser) parseBlockStmt() (*ast.BlockStatement, error) {
 	block := &ast.BlockStatement{}
 
-	p.consume(token.LBRACE)
+	if !p.match(token.LBRACE) {
+		return nil, fmt.Errorf("expected '{', received %s", p.pTok)
+	}
 
 	for p.pTok != token.RBRACE && !p.atEnd() {
-		block.Statements = append(block.Statements, p.parseStatement())
+		stmt, err := p.parseStatement()
+		if err != nil {
+			p.error(p.pPos, err)
+			// sync parser to avoid cascading errors
+			p.synchronize()
+			continue
+		}
+
+		block.Statements = append(block.Statements, stmt)
 	}
 
-	p.consume(token.RBRACE)
-	return block
+	if !p.match(token.RBRACE) {
+		return nil, fmt.Errorf("expected '}', received %s", p.pTok)
+	}
+	return block, nil
 }
 
-func (p *parser) parseLetStmt() *ast.LetStatement {
-	p.consume(token.LET)
-
-	let := &ast.LetStatement{
-		Expression: p.parseExprAssign(),
+// letStmt = "let" assignExpr
+func (p *parser) parseLetStmt() (*ast.LetStatement, error) {
+	if !p.match(token.LET) {
+		return nil, fmt.Errorf("expected 'let', received %s", p.pTok)
 	}
 
-	return let
+	expr, err := p.parseExprAssign()
+	if err != nil {
+		return nil, err
+	}
+
+	return &ast.LetStatement{
+		Expression: expr,
+	}, nil
 }
 
-func (p *parser) parseIfStatement() *ast.IfStatement {
-	p.consume(token.IF)
+// ifStmt = "if" expression blockStmt { "elif" expression blockStmt } [ "else" blockStmt ]
+func (p *parser) parseIfStatement() (*ast.IfStatement, error) {
+	if !p.match(token.IF) {
+		return nil, fmt.Errorf("expected 'if', received %s", p.pTok)
+	}
+
+	cond, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	block, err := p.parseBlockStmt()
+	if err != nil {
+		return nil, err
+	}
 
 	stmt := ast.IfStatement{
-		Condition: p.parseExpression(),
-		BlockStmt: p.parseBlockStmt(),
+		Condition: cond,
+		BlockStmt: block,
 	}
 
 	for p.match(token.ELIF) {
+		cond, err := p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+
+		block, err := p.parseBlockStmt()
+		if err != nil {
+			return nil, err
+		}
+
 		stmt.ElifBlock = append(stmt.ElifBlock, ast.ElifBlock{
-			Condition: p.parseExpression(),
-			BlockStmt: p.parseBlockStmt(),
+			Condition: cond,
+			BlockStmt: block,
 		})
 	}
 
 	if p.match(token.ELSE) {
-		stmt.ElseBlock = p.parseBlockStmt()
+		block, err := p.parseBlockStmt()
+		if err != nil {
+			return nil, err
+		}
+
+		stmt.ElseBlock = block
 	}
 
-	return &stmt
+	return &stmt, nil
 }
 
-func (p *parser) parseForStmt() *ast.ForStatement {
-	p.consume(token.FOR)
+// forStmt = "for" [ expression ] blockStmt
+func (p *parser) parseForStmt() (*ast.ForStatement, error) {
+	if !p.match(token.FOR) {
+		return nil, fmt.Errorf("expected 'for', received %s", p.pTok)
+	}
 
 	var condition ast.Expression
+	var err error
 
 	if !p.check(token.LBRACE) {
-		condition = p.parseExpression()
+		condition, err = p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	block, err := p.parseBlockStmt()
+	if err != nil {
+		return nil, err
 	}
 
 	return &ast.ForStatement{
 		Condition: condition,
-		BlockStmt: p.parseBlockStmt(),
-	}
+		BlockStmt: block,
+	}, nil
 }
 
-func (p *parser) parseCmdStmt() *ast.CmdStatement {
-	return &ast.CmdStatement{
-		Command: p.parseCommand(),
+func (p *parser) parseCmdStmt() (*ast.CmdStatement, error) {
+	cmd, err := p.parseCommand()
+	if err != nil {
+		return nil, err
 	}
+
+	return &ast.CmdStatement{
+		Command: cmd,
+	}, nil
 }
