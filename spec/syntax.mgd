@@ -1,0 +1,99 @@
+Program = StatementList .
+
+newline        = /* the Unicode code point U+000A */ .
+unicode_char   = /* any Unicode character except newline */ .
+unicode_letter = /* a Unicode code point with gc=L */ .
+unicode_digit  = /* a Unicode code point with gc=Nd */ .
+
+letter        = unicode_letter | "_" .
+decimal_digit = "0" … "9" .
+binary_digit  = "0" | "1" .
+octal_digit   = "0" … "7" .
+hex_digit     = "0" … "9" | "A" … "F" | "a" … "f" .
+
+identifier = letter { letter | unicode_digit } .
+
+number_lit  = decimal_lit | binary_lit | octal_lit | hex_lit .
+decimal_lit = decimal_digits [ decimal_fraction ] [ decimal_exponent ] .
+binary_lit  = "0" ( "b" | "B" ) [ "_" ] binary_digits .
+octal_lit   = "0" [ "o" | "O" ] [ "_" ] octal_digits .
+hex_lit     = "0" ( "x" | "X" ) [ "_" ] hex_digits [ hex_fraction ] [ hex_exponent ] .
+
+decimal_digits = decimal_digit { [ "_" ] decimal_digit } .
+binary_digits  = binary_digit { [ "_" ] binary_digit } .
+octal_digits   = octal_digit { [ "_" ] octal_digit } .
+hex_digits     = hex_digit { [ "_" ] hex_digit } .
+
+decimal_fraction = "." decimal_digits .
+hex_fraction     = "." hex_digits .
+
+decimal_exponent  = ( "e" | "E" ) [ "+" | "-" ] decimal_digits .
+hex_exponent      = ( "p" | "P" ) [ "+" | "-" ] decimal_digits .
+
+command_arg = string | embedded_string_val .
+
+string_lit             = raw_string_lit | interpreted_string_lit | embedded_string _lit .
+raw_string_lit         = "`" { unicode_char | newline } "`" .
+interpreted_string_lit = `"` interpreted_string_val `"` .
+embedded_string_lit    = "'" embedded_string_val "'" .
+interpreted_string_val = { unicode_value | byte_value } .
+embedded_string_val    = { unicode_value | byte_value | embedded_expression } .
+
+unicode_value       = little_u_value | big _u_value | escaped_char | unicode_char .
+byte_value          = octal_byte_value | hex_byte_value .
+embedded_expression = "[" expression "]" .
+octal_byte_value    = `\` octal_digit octal_digit octal_digit .
+hex_byte_value      = `\` "x" hex_digit hex_digit .
+little_u_value      = `\` "u" hex_digit hex_digit hex_digit hex_digit .
+big_u_value         = `\` "U" hex_digit hex_digit hex_digit hex_digit
+                              hex_digit hex_digit hex_digit hex_digit .
+escaped_char        = `\` ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` | "'" | `"` | "[" ) .
+
+assign_op = [ add_op | mul_op | ":" ] "=" .
+rel_op = "==" | "!=" | "<" | "<=" | ">" | ">=" .
+add_op = "+" | "-" | "|" | "^" .
+mul_op = "*" | "/" | "%" | "<<" | ">>" | "&" | "&^" .
+unary_op = "+" | "-" | "!" | "^" .
+
+Block = "{" StatementList "}" .
+StatementList = { Statement ";" } .
+
+Statement = LetStatement | ForStatement | IfStatement | Block | CommandStatement .
+
+LetStatement = "let" AssignExpression .
+ForStatement = "for" [ Expression ] Block .
+IfStatement  = "if" Expression Block [ "else" ( IfStatement | Block ) ] .
+
+AssignExpression = Assignable assign_op Expression .
+
+Expression        = OrExpression .
+OrExpression      = AndExpression { "||" OrExpression } .
+AndExpression     = RelExpression { "&&" AndExpression } .
+RelExpression     = AddExpression { rel_op RelExpression } .
+AddExpression     = MulExpression { add_op AddExpression } .
+MulExpression     = UnaryExpression { mul_op MulExpression } .
+UnaryExpression   = PrimaryExpression | unary_op UnaryExpression .
+PrimaryExpression = Operand { Selector | Index | Arguments } .
+
+Selector  = "." identifier .
+Index     = "[" Expression "]" .
+Arguments = "(" ExpressionList [ "," ] ")" .
+
+Operand = Literal | "(" Expression ")" .
+Literal = BasicLit | CompositeLit | FunctionLit .
+
+BasicLit        = identifier | number_lit | string_lit .
+CompositeLit    = ArrayLit | ObjectLit .
+FunctionLit     = "func" Block .
+ArrayLit        = "[" ExpressionList [ "," ] "]" .
+ObjectLit       = "obj" "[" ObjectEntryList [ "," ] "]" .
+ObjectEntryList = ObjectEntry { "," ObjectEntry } .
+ExpressionList  = Expression { "," Expression } .
+ObjectEntry     = Expression ":" Expression .
+
+CommandStatement = OrCommand .
+OrCommand = AndCommand { "||" OrCommand } .
+AndCommand = NotCommand { "&&" AndCommand } .
+NotCommand = [ "!" ] PipeCommand .
+PipeCommand = PrimaryCommand { "|" PipeCommand } .
+PrimaryCommand = command_arg { command_arg } .
