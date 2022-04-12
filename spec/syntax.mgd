@@ -36,10 +36,14 @@ string_lit             = raw_string_lit | interpreted_string_lit | embedded_stri
 raw_string_lit         = "`" { unicode_char | newline } "`" .
 interpreted_string_lit = `"` interpreted_string_val `"` .
 embedded_string_lit    = "'" embedded_string_val "'" .
-interpreted_string_val = { unicode_value | byte_value } .
-embedded_string_val    = { unicode_value | byte_value | embedded_expression } .
+interpreted_string_val = { interpreted_escape_char | unicode_value | byte_value } .
+embedded_string_val    = { embedded_escape_char | unicode_value | byte_value | embedded_expression } .
 
-unicode_value       = little_u_value | big _u_value | escaped_char | unicode_char .
+interpreted_escape_char = `\` ( common_escape_char | `"` ) .
+embedded_escape_char    = `\` ( common_escape_char | "'" | "[" ) .
+common_escape_char      = "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` .
+
+unicode_value       = little_u_value | big _u_value | unicode_char .
 byte_value          = octal_byte_value | hex_byte_value .
 embedded_expression = "[" expression "]" .
 octal_byte_value    = `\` octal_digit octal_digit octal_digit .
@@ -47,7 +51,8 @@ hex_byte_value      = `\` "x" hex_digit hex_digit .
 little_u_value      = `\` "u" hex_digit hex_digit hex_digit hex_digit .
 big_u_value         = `\` "U" hex_digit hex_digit hex_digit hex_digit
                               hex_digit hex_digit hex_digit hex_digit .
-escaped_char        = `\` ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` | "'" | `"` | "[" ) .
+
+embedded_expression = "[" Expression "]" .
 
 assign_op = [ add_op | mul_op | ":" ] "=" .
 rel_op = "==" | "!=" | "<" | "<=" | ">" | ">=" .
