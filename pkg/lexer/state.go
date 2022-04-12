@@ -166,63 +166,87 @@ func isIdentStart(r rune) bool {
 func lexNum(l *lexer) {
 	base := 10 // number base
 
-	decimalp := false // decimal point encountered?
-	exponent := false // exponent encountered?
-	constant := false // base spec encountered?
-
 	// 0b, 0o, or 0x base specs
 	if l.ch == '0' {
-		switch l.peek() {
-		case 'b':
-			base = 2
+		var ok bool
+		if base, ok = baseOf(l.peek()); ok {
 			l.consume()
-		case 'o':
-			base = 8
-			l.consume()
-		case 'x':
-			base = 16
-			l.consume()
-		default:
-			base = 8
 		}
 
-		constant = true
+		if l.peek() == '_' {
+			l.consume()
+		}
 	}
 
-	for {
-		r := l.peek()
-		switch {
-		case isBaseDigit(r, base):
+	l.lexDigits(base)
+
+	if base <= 8 {
+		goto tokenize
+	}
+
+	if l.peek() == '.' {
+		l.consume()
+		l.lexDigits(base)
+	}
+
+	if isExponent(l.peek(), base) {
+		l.consume()
+
+		switch l.peek() {
+		case '+', '-':
 			l.consume()
-
-		case r == '.':
-			if decimalp || exponent || constant {
-				goto tokenize
-			}
-
-			decimalp = true
-			l.consume()
-
-		case r == 'e':
-			if exponent || constant {
-				goto tokenize
-			}
-
-			exponent = true
-			l.consume()
-
-			s := l.peek()
-			if s == '+' || s == '-' {
-				l.consume()
-			}
-
-		default:
-			goto tokenize
 		}
+
+		l.lexDigits(10)
 	}
 
 tokenize:
 	l.emit(token.FLOAT)
+}
+
+func baseOf(r rune) (int, bool) {
+	switch r {
+	case 'b', 'B':
+		return 2, true
+	case 'o', 'O':
+		return 8, true
+	case 'x', 'X':
+		return 16, true
+	default:
+		return 8, false
+	}
+}
+
+func isExponent(r rune, base int) bool {
+	switch r {
+	case 'p', 'P':
+		return base == 16
+	case 'e', 'E':
+		return base == 10
+	default:
+		return false
+	}
+}
+
+func (l *lexer) lexDigits(base int) {
+	if !isBaseDigit(l.peek(), base) {
+		l.error(fmt.Errorf("invalid number literal"))
+		return
+	}
+
+	l.consume()
+
+	for {
+		if l.peek() == '_' {
+			l.consume()
+		}
+
+		if !isBaseDigit(l.peek(), base) {
+			return
+		}
+
+		l.consume()
+	}
 }
 
 func isBaseDigit(r rune, b int) bool {
