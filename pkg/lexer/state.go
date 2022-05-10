@@ -367,7 +367,7 @@ func (l *lexer) lexCmd(eoc rune) {
 			// ignore all space
 			l.consumeSpace()
 
-		case l.ch == '"':
+		case l.ch == '"' || l.ch == '\'' || l.ch == '`':
 			l.lexString()
 
 		case l.ch == '#':
@@ -467,7 +467,82 @@ func (l *lexer) lexInterpretedString() {
 	l.emit(token.STRING)
 }
 
-func (l *lexer) lexEmbeddedString() {}
+func (l *lexer) lexEmbeddedString() {
+	l.emit(token.SINGLE) // starting "'"
+
+	for {
+		switch r := l.peek(); r {
+		case eof:
+			l.error(ErrEOF)
+			l.emit(token.ILLEGAL)
+			return
+
+		// end of string
+		case '\'':
+			l.emit(token.STRING)
+
+			// ending "'"
+			l.consume()
+			l.emit(token.SINGLE)
+
+			return
+
+		// embedded expression
+		case '{':
+			// emit current string part
+			l.emit(token.STRING)
+
+			// starting "{"
+			l.consume()
+			l.emit(token.LBRACE)
+
+			l.lexEmbeddedExpr()
+			l.emit(token.RBRACE) // ending "}"
+
+		default:
+			l.consume()
+
+			// consume escape rune
+			if r == '\\' {
+				l.lexStringEscape('\'')
+			}
+		}
+	}
+}
+
+func (l *lexer) lexEmbeddedExpr() {
+	l.emit(token.LBRACE)
+
+	for {
+		l.consume()
+
+		switch {
+		// end of expression
+		case l.ch == '}':
+			return
+
+		case unicode.IsSpace(l.ch):
+			l.consumeAllSpace()
+
+		case isIdentStart(l.ch):
+			l.lexIdent()
+
+		case unicode.IsDigit(l.ch):
+			l.lexNum()
+
+		case l.ch == '"' || l.ch == '\'' || l.ch == '`':
+			l.lexString()
+
+		// all operator starting runes are themselves operators
+		case token.IsOperator(string(l.ch)):
+			l.lexStmtOp()
+
+		default:
+			// rune not supported inside embedded expressions
+			l.emit(token.ILLEGAL)
+		}
+	}
+}
 
 var (
 	ErrEsc    = errors.New("invalid escape sequence")
@@ -489,6 +564,11 @@ func (l *lexer) lexStringEscape(t rune) {
 	case 'U':
 		radix, n = 16, 8
 	default:
+		if t == '\'' && l.peek() == '{' {
+			l.consume()
+			return
+		}
+
 		l.error(ErrEsc)
 		return
 	}

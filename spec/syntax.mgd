@@ -45,7 +45,7 @@ common_escape_char      = "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` .
 
 unicode_value       = little_u_value | big _u_value | unicode_char .
 byte_value          = octal_byte_value | hex_byte_value .
-embedded_expression = "[" expression "]" .
+embedded_expression = "{" expression "}" .
 octal_byte_value    = `\` octal_digit octal_digit octal_digit .
 hex_byte_value      = `\` "x" hex_digit hex_digit .
 little_u_value      = `\` "u" hex_digit hex_digit hex_digit hex_digit .

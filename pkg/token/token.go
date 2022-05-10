@@ -81,6 +81,7 @@ const (
 	LPAREN // (
 	LBRACK // [
 	LBRACE // {
+	SINGLE // '
 	COMMA  // ,
 
 	RPAREN    // )
@@ -160,6 +161,7 @@ var tokens = [...]string{
 	LPAREN: "(",
 	LBRACK: "[",
 	LBRACE: "{",
+	SINGLE: "'",
 	COMMA:  ",",
 
 	RPAREN:    ")",
