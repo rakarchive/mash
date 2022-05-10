@@ -40,7 +40,7 @@ interpreted_string_val = { interpreted_escape_char | unicode_value | byte_value 
 embedded_string_val    = { embedded_escape_char | unicode_value | byte_value | embedded_expression } .
 
 interpreted_escape_char = `\` ( common_escape_char | `"` ) .
-embedded_escape_char    = `\` ( common_escape_char | "'" | "[" ) .
+embedded_escape_char    = `\` ( common_escape_char | "'" | "{" ) .
 common_escape_char      = "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` .
 
 unicode_value       = little_u_value | big _u_value | unicode_char .
