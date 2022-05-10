@@ -26,11 +26,11 @@ var ErrEOF = errors.New("unexpected EOF")
 // run starts lexing the source in l and closes the lexer's token channel
 // when it is done.
 func (l *lexer) run() {
-	lexBlock(l, eof, token.EOF)
+	l.lexBlock(eof, token.EOF)
 	close(l.Tokens)
 }
 
-func lexBlock(l *lexer, eob rune, tok token.TokenType) {
+func (l *lexer) lexBlock(eob rune, tok token.TokenType) {
 	for {
 		r := l.peek()
 		switch {
@@ -41,15 +41,15 @@ func lexBlock(l *lexer, eob rune, tok token.TokenType) {
 
 		// ignore all space runes
 		case unicode.IsSpace(r):
-			consumeAllSpace(l)
+			l.consumeAllSpace()
 
 		case r == '#':
-			lexComment(l)
+			l.lexComment()
 
 		// command or statement
 		default:
 			if isAlphabet(r) {
-				consumeWord(l)
+				l.consumeWord()
 
 				word := l.literal()
 				// statement starts with keyword
@@ -58,7 +58,7 @@ func lexBlock(l *lexer, eob rune, tok token.TokenType) {
 					l.emit(t)
 					l.insertSemi = t.InsertSemi()
 
-					lexStmt(l, eob)
+					l.lexStmt(eob)
 
 					// semicolon insertion
 					l.emit(token.SEMICOLON)
@@ -71,7 +71,7 @@ func lexBlock(l *lexer, eob rune, tok token.TokenType) {
 				l.pos = l.start
 			}
 
-			lexCmd(l, eob)
+			l.lexCmd(eob)
 
 			// semicolon insertion
 			l.emit(token.SEMICOLON)
@@ -83,14 +83,14 @@ func isAlphabet(r rune) bool {
 	return r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z'
 }
 
-func lexStmt(l *lexer, eos rune) {
+func (l *lexer) lexStmt(eos rune) {
 	for {
 		l.consume()
 
 		switch {
 		case l.ch == eos:
 			l.backup()
-			return // will be handled by lexBlock
+			return // will be handled by caller
 
 		case l.ch == '\n':
 			if l.insertSemi {
@@ -99,47 +99,47 @@ func lexStmt(l *lexer, eos rune) {
 			}
 
 			// ignore all space
-			consumeAllSpace(l)
+			l.consumeAllSpace()
 
 		case unicode.IsSpace(l.ch):
 			if l.insertSemi {
 				// semicolon to be inserted
 				// do not ignore newlines
-				consumeSpace(l)
+				l.consumeSpace()
 				break
 			}
 
 			// no semicolon to be inserted
 			// ignore all space runes
-			consumeAllSpace(l)
+			l.consumeAllSpace()
 
 		case isIdentStart(l.ch):
-			t := lexIdent(l)
+			t := l.lexIdent()
 			l.insertSemi = t.InsertSemi()
 
 		case l.ch == '{':
 			l.emit(token.LBRACE)
-			lexBlock(l, '}', token.RBRACE)
+			l.lexBlock('}', token.RBRACE)
 			l.insertSemi = true
 
 		case unicode.IsDigit(l.ch):
-			lexNum(l)
+			l.lexNum()
 			// semicolon should be inserted after a number
 			l.insertSemi = true
 
 		case l.ch == '"' || l.ch == '\'' || l.ch == '`':
-			lexString(l)
+			l.lexString()
 			// semicolon should be inserted after a string
 			l.insertSemi = true
 
 		// all operator starting runes are themselves operators
 		case token.IsOperator(string(l.ch)):
-			t := lexStmtOp(l)
+			t := l.lexStmtOp()
 			l.insertSemi = t.InsertSemi()
 
 		case l.ch == '#':
 			// line comment
-			lexComment(l)
+			l.lexComment()
 
 		default:
 			// rune not supported inside statements
@@ -148,7 +148,7 @@ func lexStmt(l *lexer, eos rune) {
 	}
 }
 
-func lexIdent(l *lexer) token.TokenType {
+func (l *lexer) lexIdent() token.TokenType {
 	for isIdent(l.peek()) {
 		l.consume()
 	}
@@ -163,7 +163,7 @@ func isIdentStart(r rune) bool {
 	return r == '_' || unicode.IsLetter(r)
 }
 
-func lexNum(l *lexer) {
+func (l *lexer) lexNum() {
 	base := 10 // number base
 
 	// 0b, 0o, or 0x base specs
@@ -273,7 +273,7 @@ func (l *lexer) makeOp(target rune, pass token.TokenType, fail token.TokenType) 
 	return fail
 }
 
-func lexStmtOp(l *lexer) token.TokenType {
+func (l *lexer) lexStmtOp() token.TokenType {
 	var t token.TokenType
 	switch l.ch {
 	case '+':
@@ -351,7 +351,7 @@ func lexStmtOp(l *lexer) token.TokenType {
 	return t
 }
 
-func lexCmd(l *lexer, eoc rune) {
+func (l *lexer) lexCmd(eoc rune) {
 	for {
 		l.consume()
 
@@ -365,19 +365,19 @@ func lexCmd(l *lexer, eoc rune) {
 
 		case unicode.IsSpace(l.ch):
 			// ignore all space
-			consumeSpace(l)
+			l.consumeSpace()
 
 		case l.ch == '"':
-			lexString(l)
+			l.lexString()
 
 		case l.ch == '#':
-			lexComment(l)
+			l.lexComment()
 
 		case isCmdOp(l.ch):
-			lexCmdOp(l)
+			l.lexCmdOp()
 
 		default:
-			consumeWord(l)
+			l.consumeWord()
 			l.emit(token.STRING)
 		}
 	}
@@ -392,7 +392,7 @@ func isCmdOp(r rune) bool {
 	}
 }
 
-func lexCmdOp(l *lexer) token.TokenType {
+func (l *lexer) lexCmdOp() token.TokenType {
 	var t token.TokenType
 	switch l.ch {
 	case '|':
@@ -410,7 +410,7 @@ func lexCmdOp(l *lexer) token.TokenType {
 	return t
 }
 
-func lexComment(l *lexer) {
+func (l *lexer) lexComment() {
 	// consume tokens till newline or eof
 	for r := l.peek(); r != '\n' && r != eof; r = l.peek() {
 		l.consume()
@@ -419,19 +419,18 @@ func lexComment(l *lexer) {
 	l.emit(token.COMMENT)
 }
 
-func lexString(l *lexer) {
+func (l *lexer) lexString() {
 	switch l.ch {
 	case '`':
-		lexRawString(l)
+		l.lexRawString()
 	case '\'':
-		// TODO: add embedded expressions
-		lexEscapedString(l)
+		l.lexEmbeddedString()
 	case '"':
-		lexEscapedString(l)
+		l.lexInterpretedString()
 	}
 }
 
-func lexRawString(l *lexer) {
+func (l *lexer) lexRawString() {
 	// consume tokens till '`' or eof
 	for r := l.peek(); r != '`' && r != eof; r = l.peek() {
 		l.consume()
@@ -447,14 +446,14 @@ func lexRawString(l *lexer) {
 	l.emit(token.STRING)
 }
 
-func lexEscapedString(l *lexer) {
+func (l *lexer) lexInterpretedString() {
 	// consume tokens till '"' or eof
 	for r := l.peek(); r != '"' && r != eof; r = l.peek() {
 		l.consume()
 
 		// consume escape rune
 		if r == '\\' {
-			lexStringEscape(l, '"')
+			l.lexStringEscape('"')
 		}
 	}
 
@@ -468,12 +467,14 @@ func lexEscapedString(l *lexer) {
 	l.emit(token.STRING)
 }
 
+func (l *lexer) lexEmbeddedString() {}
+
 var (
 	ErrEsc    = errors.New("invalid escape sequence")
 	ErrEscEnd = errors.New("unterminated escape sequence")
 )
 
-func lexStringEscape(l *lexer, t rune) {
+func (l *lexer) lexStringEscape(t rune) {
 	var radix, n int
 	switch l.peek() {
 	case 'a', 'b', 'f', 'n', 'r', 't', 'v', '\\', t:
@@ -512,7 +513,7 @@ func lexStringEscape(l *lexer, t rune) {
 }
 
 // consumeSpace consumes all non newline space runes.
-func consumeSpace(l *lexer) {
+func (l *lexer) consumeSpace() {
 	for r := l.peek(); unicode.IsSpace(r) && r != '\n'; r = l.peek() {
 		l.consume()
 	}
@@ -521,7 +522,7 @@ func consumeSpace(l *lexer) {
 }
 
 // consumeAllSpace consumes all space runes.
-func consumeAllSpace(l *lexer) {
+func (l *lexer) consumeAllSpace() {
 	for unicode.IsSpace(l.peek()) {
 		l.consume()
 	}
@@ -533,7 +534,7 @@ func isIdent(r rune) bool {
 	return isIdentStart(r) || unicode.IsDigit(r)
 }
 
-func consumeWord(l *lexer) {
+func (l *lexer) consumeWord() {
 	for r := l.peek(); !unicode.IsSpace(r) && r != eof; r = l.peek() {
 		l.consume()
 	}
