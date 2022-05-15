@@ -30,7 +30,7 @@ func (l *lexer) run() {
 	close(l.Tokens)
 }
 
-func (l *lexer) lexBlock(eob rune, tok token.TokenType) {
+func (l *lexer) lexBlock(eob rune, tok token.Type) {
 	for {
 		r := l.peek()
 		switch {
@@ -148,7 +148,7 @@ func (l *lexer) lexStmt(eos rune) {
 	}
 }
 
-func (l *lexer) lexIdent() token.TokenType {
+func (l *lexer) lexIdent() token.Type {
 	for isIdent(l.peek()) {
 		l.consume()
 	}
@@ -264,7 +264,7 @@ func isBaseDigit(r rune, b int) bool {
 	}
 }
 
-func (l *lexer) makeOp(target rune, pass token.TokenType, fail token.TokenType) token.TokenType {
+func (l *lexer) makeOp(target rune, pass token.Type, fail token.Type) token.Type {
 	if l.peek() == target {
 		l.consume()
 		return pass
@@ -273,8 +273,8 @@ func (l *lexer) makeOp(target rune, pass token.TokenType, fail token.TokenType) 
 	return fail
 }
 
-func (l *lexer) lexStmtOp() token.TokenType {
-	var t token.TokenType
+func (l *lexer) lexStmtOp() token.Type {
+	var t token.Type
 	switch l.ch {
 	case '+':
 		t = l.makeOp('=', token.ADD_ASSIGN, token.ADD)
@@ -392,8 +392,8 @@ func isCmdOp(r rune) bool {
 	}
 }
 
-func (l *lexer) lexCmdOp() token.TokenType {
-	var t token.TokenType
+func (l *lexer) lexCmdOp() token.Type {
+	var t token.Type
 	switch l.ch {
 	case '|':
 		t = l.makeOp('|', token.LOR, token.OR)

@@ -88,7 +88,7 @@ func Lex(src string, err ErrorHandler) TokenStream {
 // emit emits a token of type t with the current position and literal to
 // the lexer's token channel. It also resets the lexer position and offset
 // variables.
-func (l *lexer) emit(t token.TokenType) {
+func (l *lexer) emit(t token.Type) {
 	l.Tokens <- token.Token{
 		Type:     t,
 		Literal:  l.literal(),

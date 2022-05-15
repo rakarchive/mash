@@ -18,14 +18,13 @@ import (
 	"unicode"
 )
 
-// TokenType represents the type of a token which will be emitted by the
-// lexer.
-type TokenType int
+// Type represents the type of a token which will be emitted by the lexer.
+type Type int
 
 // Various types of tokens emitted by the lexer.
 const (
 	// Special tokens
-	ILLEGAL TokenType = iota
+	ILLEGAL Type = iota
 	EOF
 	COMMENT
 
@@ -184,10 +183,10 @@ var tokens = [...]string{
 	RETURN:   "return",
 }
 
-func token(s string) TokenType {
+func token(s string) Type {
 	for t, val := range tokens {
 		if val == s {
-			return TokenType(t)
+			return Type(t)
 		}
 	}
 
@@ -200,9 +199,9 @@ func token(s string) TokenType {
 // "+"). For all other tokens the string corresponds to the token
 // constant name (e.g. for the token IDENT, the string is "IDENT").
 //
-func (tok TokenType) String() string {
+func (tok Type) String() string {
 	s := ""
-	if 0 <= tok && tok < TokenType(len(tokens)) {
+	if 0 <= tok && tok < Type(len(tokens)) {
 		s = tokens[tok]
 	}
 	if s == "" {
@@ -215,7 +214,7 @@ func (tok TokenType) String() string {
 // should be inserted after a token of type tok. It returns true if
 // a semicolon should be inserted, and false if should not.
 //
-func (tok TokenType) InsertSemi() bool {
+func (tok Type) InsertSemi() bool {
 	if tok.IsLiteral() {
 		return true
 	}
@@ -232,7 +231,7 @@ func (tok TokenType) InsertSemi() bool {
 // a valid literal. Literals are tokens of with a value greater than
 // literal_beg but less than literal_end.
 //
-func (tok TokenType) IsLiteral() bool {
+func (tok Type) IsLiteral() bool {
 	return literal_beg < tok && tok < literal_end
 }
 
@@ -240,7 +239,7 @@ func (tok TokenType) IsLiteral() bool {
 // a valid operator. Operators are tokens of with a value greater than
 // operator_beg but less than operator_end.
 //
-func (tok TokenType) IsOperator() bool {
+func (tok Type) IsOperator() bool {
 	return operator_beg < tok && tok < operator_end
 }
 
@@ -248,14 +247,14 @@ func (tok TokenType) IsOperator() bool {
 // a valid keyword. Keywords are tokens of with a value greater than
 // keyword_beg but less than keyword_end.
 //
-func (tok TokenType) IsKeyword() bool {
+func (tok Type) IsKeyword() bool {
 	return keyword_beg < tok && tok < keyword_end
 }
 
-var keywords map[string]TokenType
+var keywords map[string]Type
 
 func init() {
-	keywords = make(map[string]TokenType)
+	keywords = make(map[string]Type)
 	for i := keyword_beg + 1; i < keyword_end; i++ {
 		keywords[tokens[i]] = i
 	}
@@ -293,7 +292,7 @@ func IsOperator(s string) bool {
 
 // Lookup checks if name is a keyword, and returns the token type of the
 // keyword if it is. Otherwise, it returns IDENT.
-func Lookup(name string) TokenType {
+func Lookup(name string) Type {
 	if tok, ok := keywords[name]; ok {
 		return tok
 	}
@@ -303,7 +302,7 @@ func Lookup(name string) TokenType {
 
 // Token represtents a single token which will be emitted by the lexer.
 type Token struct {
-	Type     TokenType // type of the token
-	Literal  string    // literal in source
-	Position Position  // position in source
+	Type     Type     // type of the token
+	Literal  string   // literal in source
+	Position Position // position in source
 }

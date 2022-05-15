@@ -10,12 +10,12 @@ type parser struct {
 	tokens lexer.TokenStream
 
 	// next "peek" token
-	pTok token.TokenType
+	pTok token.Type
 	pPos token.Position
 	pLit string
 
 	// current token
-	tok token.TokenType
+	tok token.Type
 	pos token.Position
 	lit string
 
@@ -45,7 +45,7 @@ func (p *parser) current() token.Token {
 	}
 }
 
-func (p *parser) match(tokens ...token.TokenType) bool {
+func (p *parser) match(tokens ...token.Type) bool {
 	for _, tok := range tokens {
 		if p.check(tok) {
 			p.next()
@@ -56,7 +56,7 @@ func (p *parser) match(tokens ...token.TokenType) bool {
 	return false
 }
 
-func (p *parser) check(tok token.TokenType) bool {
+func (p *parser) check(tok token.Type) bool {
 	return tok == p.pTok
 }
 
