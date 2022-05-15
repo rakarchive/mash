@@ -1,58 +1,74 @@
+// Copyright © 2022 Rak Laptudirm <raklaptudirm@gmail.com>
+// The Mash Syntax Specification
+//
+// Syntax is specified using the mdg formal grammar, which is a dialect of
+// the standard ebnf. The specification of mdg is also given below.
+//
+// |  alternation
+// () grouping
+// [] option (0 or 1 times)
+// {} repitition (0 to n times)
+//
+// Productions names starting with an underscore(_) represent utility
+// lexical productions. Names starting with a lower-case letters represents
+// lexical tokens. Names starting with upper-case letters represent
+// productions involving lexical tokens.
+
 Program = StatementList .
 
-newline        = /* the Unicode code point U+000A */ .
-unicode_char   = /* any Unicode character except newline */ .
-unicode_letter = /* a Unicode code point with gc=L */ .
-unicode_digit  = /* a Unicode code point with gc=Nd */ .
+_newline        = /* the Unicode code point U+000A */ .
+_unicode_char   = /* any Unicode character except newline */ .
+_unicode_letter = /* a Unicode code point with gc=L */ .
+_unicode_digit  = /* a Unicode code point with gc=Nd */ .
 
-letter        = unicode_letter | "_" .
-decimal_digit = "0" … "9" .
-binary_digit  = "0" | "1" .
-octal_digit   = "0" … "7" .
-hex_digit     = "0" … "9" | "A" … "F" | "a" … "f" .
+_letter        = _unicode_letter | "_" .
+_decimal_digit = "0" … "9" .
+_binary_digit  = "0" | "1" .
+_octal_digit   = "0" … "7" .
+_hex_digit     = "0" … "9" | "A" … "F" | "a" … "f" .
 
-identifier = letter { letter | unicode_digit } .
+identifier = _letter { _letter | _unicode_digit } .
 
-number_lit  = decimal_lit | binary_lit | octal_lit | hex_lit .
-decimal_lit = decimal_digits [ decimal_fraction ] [ decimal_exponent ] .
-binary_lit  = "0" ( "b" | "B" ) [ "_" ] binary_digits .
-octal_lit   = "0" [ "o" | "O" ] [ "_" ] octal_digits .
-hex_lit     = "0" ( "x" | "X" ) [ "_" ] hex_digits [ hex_fraction ] [ hex_exponent ] .
+number_lit  = _binary_lit | _octal_lit | _decimal_lit | _hex_lit .
+_decimal_lit = _decimal_digits [ _decimal_fraction ] [ _decimal_exponent ] .
+_binary_lit  = "0" ( "b" | "B" ) [ "_" ] _binary_digits .
+_octal_lit   = "0" [ "o" | "O" ] [ "_" ] _octal_digits .
+_hex_lit     = "0" ( "x" | "X" ) [ "_" ] _hex_digits [ _hex_fraction ] [ _hex_exponent ] .
 
-decimal_digits = decimal_digit { [ "_" ] decimal_digit } .
-binary_digits  = binary_digit { [ "_" ] binary_digit } .
-octal_digits   = octal_digit { [ "_" ] octal_digit } .
-hex_digits     = hex_digit { [ "_" ] hex_digit } .
+_decimal_digits = _decimal_digit { [ "_" ] _decimal_digit } .
+_binary_digits  = _binary_digit { [ "_" ] _binary_digit } .
+_octal_digits   = _octal_digit { [ "_" ] _octal_digit } .
+_hex_digits     = _hex_digit { [ "_" ] _hex_digit } .
 
-decimal_fraction = "." decimal_digits .
-hex_fraction     = "." hex_digits .
+_decimal_fraction = "." _decimal_digits .
+_hex_fraction     = "." _hex_digits .
 
-decimal_exponent  = ( "e" | "E" ) [ "+" | "-" ] decimal_digits .
-hex_exponent      = ( "p" | "P" ) [ "+" | "-" ] decimal_digits .
+_decimal_exponent  = ( "e" | "E" ) [ "+" | "-" ] _decimal_digits .
+_hex_exponent      = ( "p" | "P" ) [ "+" | "-" ] _decimal_digits .
 
 command_arg = string | embedded_string_val .
 
-string_lit             = raw_string_lit | interpreted_string_lit | embedded_string _lit .
-raw_string_lit         = "`" { unicode_char | newline } "`" .
-interpreted_string_lit = `"` interpreted_string_val `"` .
-embedded_string_lit    = "'" embedded_string_val "'" .
-interpreted_string_val = { interpreted_escape_char | unicode_value | byte_value } .
-embedded_string_val    = { embedded_escape_char | unicode_value | byte_value | embedded_expression } .
+string_lit             = raw_string_lit | interpreted_string_lit | embedded_string_lit .
+raw_string_lit         = "`" { _unicode_char | _newline } "`" .
+interpreted_string_lit = `"` _interpreted_string_val `"` .
+embedded_string_lit    = "'" _embedded_string_val "'" .
+_interpreted_string_val = { _interpreted_escape_char | _escapes  } .
+_embedded_string_val    = { _embedded_escape_char | _escapes | _embedded_expression } .
 
-interpreted_escape_char = `\` ( common_escape_char | `"` ) .
-embedded_escape_char    = `\` ( common_escape_char | "'" | "{" ) .
-common_escape_char      = "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` .
+_escapes = _unicode_value | _byte_value
 
-unicode_value       = little_u_value | big _u_value | unicode_char .
-byte_value          = octal_byte_value | hex_byte_value .
-embedded_expression = "{" expression "}" .
-octal_byte_value    = `\` octal_digit octal_digit octal_digit .
-hex_byte_value      = `\` "x" hex_digit hex_digit .
-little_u_value      = `\` "u" hex_digit hex_digit hex_digit hex_digit .
-big_u_value         = `\` "U" hex_digit hex_digit hex_digit hex_digit
-                              hex_digit hex_digit hex_digit hex_digit .
+_interpreted_escape_char = `\` ( _common_escape_char | `"` ) .
+_embedded_escape_char    = `\` ( _common_escape_char | "'" | "{" ) .
+_common_escape_char      = "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` .
 
-embedded_expression = "[" Expression "]" .
+_unicode_value       = _little_u_value | _big _u_value | _unicode_char .
+_byte_value          = _octal_byte_value | _hex_byte_value .
+_embedded_expression = "{" Expression "}" .
+_octal_byte_value    = `\` _octal_digit _octal_digit _octal_digit .
+_hex_byte_value      = `\` "x" _hex_digit _hex_digit .
+_little_u_value      = `\` "u" _hex_digit _hex_digit _hex_digit _hex_digit .
+_big_u_value         = `\` "U" _hex_digit _hex_digit _hex_digit _hex_digit
+                               _hex_digit _hex_digit _hex_digit _hex_digit .
 
 assign_op = [ add_op | mul_op | ":" ] "=" .
 rel_op = "==" | "!=" | "<" | "<=" | ">" | ">=" .
