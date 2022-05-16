@@ -77,9 +77,9 @@ mul_op = "*" | "/" | "%" | "<<" | ">>" | "&" | "&^" .
 unary_op = "+" | "-" | "!" | "^" .
 
 Block = "{" StatementList "}" .
-StatementList = { Statement ";" } .
+StatementList = { Statement } .
 
-Statement = LetStatement | ForStatement | IfStatement | Block | CommandStatement .
+Statement = ( LetStatement | ForStatement | IfStatement | Block | CommandStatement ) ";" .
 
 LetStatement = "let" AssignExpression .
 ForStatement = "for" [ Expression ] Block .
@@ -98,18 +98,17 @@ PrimaryExpression = Operand { Selector | Index | Arguments } .
 
 Selector  = "." identifier .
 Index     = "[" Expression "]" .
-Arguments = "(" ExpressionList [ "," ] ")" .
+Arguments = "(" ExpressionList ")" .
 
 Operand = Literal | "(" Expression ")" .
-Literal = BasicLit | CompositeLit | FunctionLit .
+Literal = BasicLit | ArrayLit | ObjectLit | FunctionLit .
 
 BasicLit        = identifier | number_lit | string_lit .
-CompositeLit    = ArrayLit | ObjectLit .
 FunctionLit     = "func" Block .
-ArrayLit        = "[" ExpressionList [ "," ] "]" .
+ArrayLit        = "[" ExpressionList "]" .
 ObjectLit       = "obj" "[" ObjectEntryList [ "," ] "]" .
 ObjectEntryList = ObjectEntry { "," ObjectEntry } .
-ExpressionList  = Expression { "," Expression } .
+ExpressionList  = [ Expression { "," Expression } [ "," ] ] .
 ObjectEntry     = Expression ":" Expression .
 
 CommandStatement = OrCommand .

@@ -15,17 +15,11 @@ func (b *BlockStatement) Statement() {}
 type IfStatement struct {
 	Condition Expression
 	BlockStmt *BlockStatement
-	ElifBlock []ElifBlock
-	ElseBlock *BlockStatement
+	ElseBlock Statement
 }
 
 func (i *IfStatement) Node()      {}
 func (i *IfStatement) Statement() {}
-
-type ElifBlock struct {
-	Condition Expression
-	BlockStmt *BlockStatement
-}
 
 type ForStatement struct {
 	Condition Expression
