@@ -24,163 +24,161 @@ type Type int
 // Various types of tokens emitted by the lexer.
 const (
 	// Special tokens
-	ILLEGAL Type = iota
-	EOF
-	COMMENT
+	Illegal Type = iota
+	Eof
+	Comment
 
-	literal_beg
+	literalBeg
 	// Identifiers and basic type literals
-	IDENT  // main
-	FLOAT  // 3.14
-	STRING // "abc"
-	literal_end
+	Identifier // main
+	Number     // 3.14
+	String     // "abc"
+	literalEnd
 
-	operator_beg
+	operatorBeg
 	// Operators and delimiters
-	ADD // +
-	SUB // -
-	MUL // *
-	QUO // /
-	REM // %
+	Addition       // +
+	Subtraction    // -
+	Multiplication // *
+	Quotient       // /
+	Remainder      // %
 
-	AND     // &
-	OR      // |
-	XOR     // ^
-	SHL     // <<
-	SHR     // >>
-	AND_NOT // &^
+	And        // &
+	Or         // |
+	Xor        // ^
+	ShiftLeft  // <<
+	ShiftRight // >>
+	AndNot     // &^
 
-	ADD_ASSIGN // +=
-	SUB_ASSIGN // -=
-	MUL_ASSIGN // *=
-	QUO_ASSIGN // /=
-	REM_ASSIGN // %=
+	AdditionAssign       // +=
+	SubtractionAssign    // -=
+	MultiplicationAssign // *=
+	QuotientAssign       // /=
+	RemainderAssign      // %=
 
-	AND_ASSIGN     // &=
-	OR_ASSIGN      // |=
-	XOR_ASSIGN     // ^=
-	SHL_ASSIGN     // <<=
-	SHR_ASSIGN     // >>=
-	AND_NOT_ASSIGN // &^=
+	AndAssign        // &=
+	OrAssign         // |=
+	XorAssign        // ^=
+	ShiftLeftAssign  // <<=
+	ShiftRightAssign // >>=
+	AndNotAssign     // &^=
 
-	LAND // &&
-	LOR  // ||
+	LogicalAnd // &&
+	LogicalOr  // ||
 
-	EQL    // ==
-	LSS    // <
-	GTR    // >
-	ASSIGN // =
-	DEFINE // :=
-	NOT    // !
+	Equal       // ==
+	LessThan    // <
+	GreaterThan // >
+	Assign      // =
+	Define      // :=
+	Not         // !
 
-	NEQ // !=
-	LEQ // <=
-	GEQ // >=
+	NotEqual         // !=
+	LessThanEqual    // <=
+	GreaterThanEqual // >=
 
-	LPAREN // (
-	LBRACK // [
-	LBRACE // {
-	SINGLE // '
-	COMMA  // ,
+	LeftParen     // (
+	LeftBrack     // [
+	LeftBrace     // {
+	TemplateStart // '
+	Comma         // ,
 
-	RPAREN    // )
-	RBRACK    // ]
-	RBRACE    // }
-	SEMICOLON // ;
-	COLON     // :
-	operator_end
+	RightParen // )
+	RightBrack // ]
+	RightBrace // }
+	Semicolon  // ;
+	Colon      // :
+	operatorEnd
 
-	keyword_beg
+	keywordBeg
 	// Keywords
-	FOR
-	IF
-	ELIF
-	ELSE
+	For
+	If
+	Else
 
-	LET
-	OBJ
-	FUNC
+	Let
+	Obj
+	Func
 
-	BREAK
-	CONTINUE
-	RETURN
-	keyword_end
+	Break
+	Continue
+	Return
+	keywordEnd
 )
 
 var tokens = [...]string{
-	ILLEGAL: "ILLEGAL",
+	Illegal: "ILLEGAL",
 
-	EOF:     "EOF",
-	COMMENT: "COMMENT",
+	Eof:     "EOF",
+	Comment: "COMMENT",
 
-	IDENT:  "IDENT",
-	FLOAT:  "FLOAT",
-	STRING: "STRING",
+	Identifier: "IDENT",
+	Number:     "FLOAT",
+	String:     "STRING",
 
-	ADD: "+",
-	SUB: "-",
-	MUL: "*",
-	QUO: "/",
-	REM: "%",
+	Addition:       "+",
+	Subtraction:    "-",
+	Multiplication: "*",
+	Quotient:       "/",
+	Remainder:      "%",
 
-	AND:     "&",
-	OR:      "|",
-	XOR:     "^",
-	SHL:     "<<",
-	SHR:     ">>",
-	AND_NOT: "&^",
+	And:        "&",
+	Or:         "|",
+	Xor:        "^",
+	ShiftLeft:  "<<",
+	ShiftRight: ">>",
+	AndNot:     "&^",
 
-	ADD_ASSIGN: "+=",
-	SUB_ASSIGN: "-=",
-	MUL_ASSIGN: "*=",
-	QUO_ASSIGN: "/=",
-	REM_ASSIGN: "%=",
+	AdditionAssign:       "+=",
+	SubtractionAssign:    "-=",
+	MultiplicationAssign: "*=",
+	QuotientAssign:       "/=",
+	RemainderAssign:      "%=",
 
-	AND_ASSIGN:     "&=",
-	OR_ASSIGN:      "|=",
-	XOR_ASSIGN:     "^=",
-	SHL_ASSIGN:     "<<=",
-	SHR_ASSIGN:     ">>=",
-	AND_NOT_ASSIGN: "&^=",
+	AndAssign:        "&=",
+	OrAssign:         "|=",
+	XorAssign:        "^=",
+	ShiftLeftAssign:  "<<=",
+	ShiftRightAssign: ">>=",
+	AndNotAssign:     "&^=",
 
-	LAND: "&&",
-	LOR:  "||",
+	LogicalAnd: "&&",
+	LogicalOr:  "||",
 
-	EQL:    "==",
-	LSS:    "<",
-	GTR:    ">",
-	ASSIGN: "=",
-	NOT:    "!",
+	Equal:       "==",
+	LessThan:    "<",
+	GreaterThan: ">",
+	Assign:      "=",
+	Not:         "!",
 
-	NEQ:    "!=",
-	LEQ:    "<=",
-	GEQ:    ">=",
-	DEFINE: ":=",
+	NotEqual:         "!=",
+	LessThanEqual:    "<=",
+	GreaterThanEqual: ">=",
+	Define:           ":=",
 
-	LPAREN: "(",
-	LBRACK: "[",
-	LBRACE: "{",
-	SINGLE: "'",
-	COMMA:  ",",
+	LeftParen:     "(",
+	LeftBrack:     "[",
+	LeftBrace:     "{",
+	TemplateStart: "'",
+	Comma:         ",",
 
-	RPAREN:    ")",
-	RBRACK:    "]",
-	RBRACE:    "}",
-	SEMICOLON: ";",
-	COLON:     ":",
+	RightParen: ")",
+	RightBrack: "]",
+	RightBrace: "}",
+	Semicolon:  ";",
+	Colon:      ":",
 
-	FOR:  "for",
-	IF:   "if",
-	ELIF: "elif",
-	ELSE: "else",
+	For:  "for",
+	If:   "if",
+	Else: "else",
 
-	LET:  "let",
-	OBJ:  "obj",
-	FUNC: "func",
+	Let:  "let",
+	Obj:  "obj",
+	Func: "func",
 
-	BREAK:    "break",
-	CONTINUE: "continue",
-	RETURN:   "return",
+	Break:    "break",
+	Continue: "continue",
+	Return:   "return",
 }
 
 func token(s string) Type {
@@ -190,7 +188,7 @@ func token(s string) Type {
 		}
 	}
 
-	return ILLEGAL
+	return Illegal
 }
 
 // String returns the string corresponding to the token tok.
@@ -220,7 +218,7 @@ func (tok Type) InsertSemi() bool {
 	}
 
 	switch tok {
-	case RPAREN, RBRACK, RBRACE, BREAK, CONTINUE, RETURN:
+	case RightParen, RightBrack, RightBrace, Break, Continue, Return:
 		return true
 	default:
 		return false
@@ -232,7 +230,7 @@ func (tok Type) InsertSemi() bool {
 // literal_beg but less than literal_end.
 //
 func (tok Type) IsLiteral() bool {
-	return literal_beg < tok && tok < literal_end
+	return literalBeg < tok && tok < literalEnd
 }
 
 // IsOperator returns a boolean depending on wether the type of tok is
@@ -240,7 +238,7 @@ func (tok Type) IsLiteral() bool {
 // operator_beg but less than operator_end.
 //
 func (tok Type) IsOperator() bool {
-	return operator_beg < tok && tok < operator_end
+	return operatorBeg < tok && tok < operatorEnd
 }
 
 // IsKeyword returns a boolean depending on wether the type of tok is
@@ -248,14 +246,14 @@ func (tok Type) IsOperator() bool {
 // keyword_beg but less than keyword_end.
 //
 func (tok Type) IsKeyword() bool {
-	return keyword_beg < tok && tok < keyword_end
+	return keywordBeg < tok && tok < keywordEnd
 }
 
 var keywords map[string]Type
 
 func init() {
 	keywords = make(map[string]Type)
-	for i := keyword_beg + 1; i < keyword_end; i++ {
+	for i := keywordBeg + 1; i < keywordEnd; i++ {
 		keywords[tokens[i]] = i
 	}
 }
@@ -297,7 +295,7 @@ func Lookup(name string) Type {
 		return tok
 	}
 
-	return IDENT
+	return Identifier
 }
 
 // Token represtents a single token which will be emitted by the lexer.

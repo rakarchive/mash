@@ -26,7 +26,7 @@ var ErrEOF = errors.New("unexpected EOF")
 // run starts lexing the source in l and closes the lexer's token channel
 // when it is done.
 func (l *lexer) run() {
-	l.lexBlock(eof, token.EOF)
+	l.lexBlock(eof, token.Eof)
 	close(l.Tokens)
 }
 
@@ -61,7 +61,7 @@ func (l *lexer) lexBlock(eob rune, tok token.Type) {
 					l.lexStmt(eob)
 
 					// semicolon insertion
-					l.emit(token.SEMICOLON)
+					l.emit(token.Semicolon)
 					break
 				}
 
@@ -74,7 +74,7 @@ func (l *lexer) lexBlock(eob rune, tok token.Type) {
 			l.lexCmd(eob)
 
 			// semicolon insertion
-			l.emit(token.SEMICOLON)
+			l.emit(token.Semicolon)
 		}
 	}
 }
@@ -118,8 +118,8 @@ func (l *lexer) lexStmt(eos rune) {
 			l.insertSemi = t.InsertSemi()
 
 		case l.ch == '{':
-			l.emit(token.LBRACE)
-			l.lexBlock('}', token.RBRACE)
+			l.emit(token.LeftBrace)
+			l.lexBlock('}', token.RightBrace)
 			l.insertSemi = true
 
 		case unicode.IsDigit(l.ch):
@@ -143,7 +143,7 @@ func (l *lexer) lexStmt(eos rune) {
 
 		default:
 			// rune not supported inside statements
-			l.emit(token.ILLEGAL)
+			l.emit(token.Illegal)
 		}
 	}
 }
@@ -201,7 +201,7 @@ func (l *lexer) lexNum() {
 	}
 
 tokenize:
-	l.emit(token.FLOAT)
+	l.emit(token.Number)
 }
 
 func baseOf(r rune) (int, bool) {
@@ -277,74 +277,74 @@ func (l *lexer) lexStmtOp() token.Type {
 	var t token.Type
 	switch l.ch {
 	case '+':
-		t = l.makeOp('=', token.ADD_ASSIGN, token.ADD)
+		t = l.makeOp('=', token.AdditionAssign, token.Addition)
 	case '-':
-		t = l.makeOp('=', token.SUB_ASSIGN, token.SUB)
+		t = l.makeOp('=', token.SubtractionAssign, token.Subtraction)
 	case '*':
-		t = l.makeOp('=', token.MUL_ASSIGN, token.MUL)
+		t = l.makeOp('=', token.MultiplicationAssign, token.Multiplication)
 	case '/':
-		t = l.makeOp('=', token.QUO_ASSIGN, token.QUO)
+		t = l.makeOp('=', token.QuotientAssign, token.Quotient)
 	case '%':
-		t = l.makeOp('=', token.REM_ASSIGN, token.REM)
+		t = l.makeOp('=', token.RemainderAssign, token.Remainder)
 	case '&':
-		t = l.makeOp('&', token.LAND, token.AND)
+		t = l.makeOp('&', token.LogicalAnd, token.And)
 
-		if t == token.LAND {
+		if t == token.LogicalAnd {
 			break
 		}
 
-		t = l.makeOp('^', token.AND_NOT, token.AND)
+		t = l.makeOp('^', token.AndNot, token.And)
 
-		e := token.AND_NOT_ASSIGN
-		if t == token.AND {
-			e = token.AND_ASSIGN
+		e := token.AndNotAssign
+		if t == token.And {
+			e = token.AndAssign
 		}
 
 		t = l.makeOp('=', e, t)
 	case '|':
-		t = l.makeOp('|', token.LOR, token.OR)
+		t = l.makeOp('|', token.LogicalOr, token.Or)
 
-		if t == token.OR {
-			t = l.makeOp('=', token.OR_ASSIGN, token.OR)
+		if t == token.Or {
+			t = l.makeOp('=', token.OrAssign, token.Or)
 		}
 	case '^':
-		t = l.makeOp('=', token.XOR_ASSIGN, token.XOR)
+		t = l.makeOp('=', token.XorAssign, token.Xor)
 	case '<':
-		t = l.makeOp('<', token.SHL, token.LSS)
+		t = l.makeOp('<', token.ShiftLeft, token.LessThan)
 
-		e := token.SHL_ASSIGN
-		if t == token.LSS {
-			e = token.LEQ
+		e := token.ShiftLeftAssign
+		if t == token.LessThan {
+			e = token.LessThanEqual
 		}
 
 		t = l.makeOp('=', e, t)
 	case '>':
-		t = l.makeOp('>', token.SHR, token.GTR)
+		t = l.makeOp('>', token.ShiftRight, token.GreaterThan)
 
-		e := token.SHR_ASSIGN
-		if t == token.GTR {
-			e = token.GEQ
+		e := token.ShiftRightAssign
+		if t == token.GreaterThan {
+			e = token.GreaterThanEqual
 		}
 
 		t = l.makeOp('=', e, t)
 	case '=':
-		t = l.makeOp('=', token.EQL, token.ASSIGN)
+		t = l.makeOp('=', token.Equal, token.Assign)
 	case '!':
-		t = l.makeOp('=', token.NEQ, token.NOT)
+		t = l.makeOp('=', token.NotEqual, token.Not)
 	case '(':
-		t = token.LPAREN
+		t = token.LeftParen
 	case '[':
-		t = token.LBRACK
+		t = token.LeftBrack
 	case ',':
-		t = token.COMMA
+		t = token.Comma
 	case ')':
-		t = token.RPAREN
+		t = token.RightParen
 	case ']':
-		t = token.RBRACK
+		t = token.RightBrack
 	case ';':
-		t = token.SEMICOLON
+		t = token.Semicolon
 	case ':':
-		t = l.makeOp('=', token.DEFINE, token.COLON)
+		t = l.makeOp('=', token.Define, token.Colon)
 	}
 
 	l.emit(t)
@@ -378,7 +378,7 @@ func (l *lexer) lexCmd(eoc rune) {
 
 		default:
 			l.consumeWord()
-			l.emit(token.STRING)
+			l.emit(token.String)
 		}
 	}
 }
@@ -396,14 +396,14 @@ func (l *lexer) lexCmdOp() token.Type {
 	var t token.Type
 	switch l.ch {
 	case '|':
-		t = l.makeOp('|', token.LOR, token.OR)
+		t = l.makeOp('|', token.LogicalOr, token.Or)
 	case '&':
-		t = l.makeOp('&', token.LAND, token.AND)
+		t = l.makeOp('&', token.LogicalAnd, token.And)
 	case '!':
-		t = token.NOT
+		t = token.Not
 	default:
 		// unreachable
-		t = token.ILLEGAL
+		t = token.Illegal
 	}
 
 	l.emit(t)
@@ -416,7 +416,7 @@ func (l *lexer) lexComment() {
 		l.consume()
 	}
 
-	l.emit(token.COMMENT)
+	l.emit(token.Comment)
 }
 
 func (l *lexer) lexString() {
@@ -438,12 +438,12 @@ func (l *lexer) lexRawString() {
 
 	if l.peek() == eof {
 		l.error(ErrEOF)
-		l.emit(token.ILLEGAL)
+		l.emit(token.Illegal)
 		return
 	}
 
 	l.consume() // consume the trailing '`'
-	l.emit(token.STRING)
+	l.emit(token.String)
 }
 
 func (l *lexer) lexInterpretedString() {
@@ -459,45 +459,45 @@ func (l *lexer) lexInterpretedString() {
 
 	if l.peek() == eof {
 		l.error(ErrEOF)
-		l.emit(token.ILLEGAL)
+		l.emit(token.Illegal)
 		return
 	}
 
 	l.consume() // consume the trailing '"'
-	l.emit(token.STRING)
+	l.emit(token.String)
 }
 
 func (l *lexer) lexEmbeddedString() {
-	l.emit(token.SINGLE) // starting "'"
+	l.emit(token.TemplateStart) // starting "'"
 
 	for {
 		switch r := l.peek(); r {
 		case eof:
 			l.error(ErrEOF)
-			l.emit(token.ILLEGAL)
+			l.emit(token.Illegal)
 			return
 
 		// end of string
 		case '\'':
-			l.emit(token.STRING)
+			l.emit(token.String)
 
 			// ending "'"
 			l.consume()
-			l.emit(token.SINGLE)
+			l.emit(token.TemplateStart)
 
 			return
 
 		// embedded expression
 		case '{':
 			// emit current string part
-			l.emit(token.STRING)
+			l.emit(token.String)
 
 			// starting "{"
 			l.consume()
-			l.emit(token.LBRACE)
+			l.emit(token.LeftBrace)
 
 			l.lexEmbeddedExpr()
-			l.emit(token.RBRACE) // ending "}"
+			l.emit(token.RightBrace) // ending "}"
 
 		default:
 			l.consume()
@@ -511,7 +511,7 @@ func (l *lexer) lexEmbeddedString() {
 }
 
 func (l *lexer) lexEmbeddedExpr() {
-	l.emit(token.LBRACE)
+	l.emit(token.LeftBrace)
 
 	for {
 		l.consume()
@@ -539,7 +539,7 @@ func (l *lexer) lexEmbeddedExpr() {
 
 		default:
 			// rune not supported inside embedded expressions
-			l.emit(token.ILLEGAL)
+			l.emit(token.Illegal)
 		}
 	}
 }
