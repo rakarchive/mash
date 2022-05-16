@@ -511,8 +511,6 @@ func (l *lexer) lexEmbeddedString() {
 }
 
 func (l *lexer) lexEmbeddedExpr() {
-	l.emit(token.LeftBrace)
-
 	for {
 		l.consume()
 
