@@ -243,6 +243,8 @@ func (p *parser) parseIndex(expr ast.Expression) (ast.Expression, error) {
 // Arguments = "(" ExpressionList ")" .
 func (p *parser) parseArguments(expr ast.Expression) (ast.Expression, error) {
 	var args []ast.Expression
+
+	p.match(token.LeftParen)
 	paren := p.current()
 
 	args, err := p.parseExpressionList(token.RightParen)
