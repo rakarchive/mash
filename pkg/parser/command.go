@@ -116,15 +116,36 @@ func (p *parser) parsePrimaryCommand() (ast.Command, error) {
 		return nil, fmt.Errorf("unexpected token %s", p.pTok)
 	}
 
-	root := p.current()
+	var components []ast.CommandComponent
 
-	var args []token.Token
-	for p.match(token.String) {
-		args = append(args, p.current())
+componentLoop:
+	for {
+		var component ast.CommandComponent
+
+		switch p.pTok {
+		case token.String:
+			expr, err := p.parseBasicLit()
+			if err != nil {
+				return nil, err
+			}
+
+			component = expr.(*ast.StringLiteral)
+		case token.Template:
+			template, err := p.parseTemplateLit()
+			if err != nil {
+				return nil, err
+			}
+
+			component = template
+		default:
+			break componentLoop
+		}
+
+		components = append(components, component)
 	}
 
 	return &ast.LiteralCommand{
-		Cmd:  root,
-		Args: args,
+		Cmd:  components[0],
+		Args: components[1:],
 	}, nil
 }

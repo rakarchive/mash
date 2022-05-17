@@ -46,8 +46,6 @@ _hex_fraction     = "." _hex_digits .
 _decimal_exponent  = ( "e" | "E" ) [ "+" | "-" ] _decimal_digits .
 _hex_exponent      = ( "p" | "P" ) [ "+" | "-" ] _decimal_digits .
 
-command_arg = string | embedded_string_val .
-
 string_lit             = raw_string_lit | interpreted_string_lit .
 raw_string_lit         = "`" { _unicode_char | _newline } "`" .
 interpreted_string_lit = `"` _interpreted_string_val `"` .
@@ -116,4 +114,5 @@ OrCommand = AndCommand { "||" OrCommand } .
 AndCommand = NotCommand { "&&" AndCommand } .
 NotCommand = [ "!" ] PipeCommand .
 PipeCommand = PrimaryCommand { "|" PipeCommand } .
-PrimaryCommand = command_arg { command_arg } .
+PrimaryCommand = CommandComponent { CommandComponent } .
+CommandComponent = string | embedded_string_val | TemplateLit .

@@ -21,9 +21,10 @@ type StringLiteral struct {
 	Value string
 }
 
-func (n *StringLiteral) Node()       {}
-func (n *StringLiteral) Literal()    {}
-func (n *StringLiteral) Expression() {}
+func (n *StringLiteral) Node()             {}
+func (n *StringLiteral) Literal()          {}
+func (n *StringLiteral) Expression()       {}
+func (n *StringLiteral) CommandComponent() {}
 
 type FunctionLiteral struct {
 	Token token.Token
@@ -57,6 +58,7 @@ type TemplateLiteral struct {
 	Components  []token.Token
 }
 
-func (t *TemplateLiteral) Node()       {}
-func (t *TemplateLiteral) Literal()    {}
-func (t *TemplateLiteral) Expression() {}
+func (t *TemplateLiteral) Node()             {}
+func (t *TemplateLiteral) Literal()          {}
+func (t *TemplateLiteral) Expression()       {}
+func (t *TemplateLiteral) CommandComponent() {}

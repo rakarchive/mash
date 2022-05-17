@@ -7,6 +7,11 @@ type Command interface {
 	Command()
 }
 
+type CommandComponent interface {
+	Node
+	CommandComponent()
+}
+
 type LogicalCommand struct {
 	Left     Command
 	Operator token.Token
@@ -34,8 +39,8 @@ func (b *BinaryCommand) Node()    {}
 func (b *BinaryCommand) Command() {}
 
 type LiteralCommand struct {
-	Cmd  token.Token
-	Args []token.Token
+	Cmd  CommandComponent
+	Args []CommandComponent
 }
 
 func (l *LiteralCommand) Node()    {}
