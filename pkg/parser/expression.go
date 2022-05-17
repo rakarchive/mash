@@ -287,6 +287,8 @@ func (p *parser) parseLiteral() (ast.Expression, error) {
 		return p.parseObjectLit()
 	case token.Func:
 		return p.parseFunctionLit()
+	case token.Template:
+		return p.parseTemplateLit()
 	default:
 		return nil, fmt.Errorf("invalid literal %s", p.pTok)
 	}
@@ -395,6 +397,39 @@ func (p *parser) parseFunctionLit() (*ast.FunctionLiteral, error) {
 	return &ast.FunctionLiteral{
 		Token: tok,
 		Block: block,
+	}, nil
+}
+
+// TemplateLit = "'" _embedded_string_val "'" .
+func (p *parser) parseTemplateLit() (*ast.TemplateLiteral, error) {
+	p.match(token.Template)
+
+	var components []token.Token
+	var expressions []ast.Expression
+
+	for {
+		p.match(token.String)
+		components = append(components, p.current())
+
+		if p.match(token.Template) {
+			break
+		}
+
+		p.match(token.LeftBrace)
+
+		expr, err := p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+
+		expressions = append(expressions, expr)
+
+		p.match(token.RightBrace)
+	}
+
+	return &ast.TemplateLiteral{
+		Expressions: expressions,
+		Components:  components,
 	}, nil
 }
 

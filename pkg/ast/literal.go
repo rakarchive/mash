@@ -51,3 +51,12 @@ type ObjectLiteral struct {
 func (o *ObjectLiteral) Node()       {}
 func (o *ObjectLiteral) Literal()    {}
 func (o *ObjectLiteral) Expression() {}
+
+type TemplateLiteral struct {
+	Expressions []Expression
+	Components  []token.Token
+}
+
+func (t *TemplateLiteral) Node()       {}
+func (t *TemplateLiteral) Literal()    {}
+func (t *TemplateLiteral) Expression() {}

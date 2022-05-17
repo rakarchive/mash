@@ -48,10 +48,9 @@ _hex_exponent      = ( "p" | "P" ) [ "+" | "-" ] _decimal_digits .
 
 command_arg = string | embedded_string_val .
 
-string_lit             = raw_string_lit | interpreted_string_lit | embedded_string_lit .
+string_lit             = raw_string_lit | interpreted_string_lit .
 raw_string_lit         = "`" { _unicode_char | _newline } "`" .
 interpreted_string_lit = `"` _interpreted_string_val `"` .
-embedded_string_lit    = "'" _embedded_string_val "'" .
 _interpreted_string_val = { _interpreted_escape_char | _escapes  } .
 _embedded_string_val    = { _embedded_escape_char | _escapes | _embedded_expression } .
 
@@ -101,10 +100,11 @@ Index     = "[" Expression "]" .
 Arguments = "(" ExpressionList ")" .
 
 Operand = Literal | "(" Expression ")" .
-Literal = BasicLit | ArrayLit | ObjectLit | FunctionLit .
+Literal = BasicLit | ArrayLit | ObjectLit | FunctionLit | TemplateLit .
 
 BasicLit        = identifier | number_lit | string_lit .
 FunctionLit     = "func" Block .
+TemplateLit     = "'" _embedded_string_val "'" .
 ArrayLit        = "[" ExpressionList "]" .
 ObjectLit       = "obj" "[" ObjectEntryList [ "," ] "]" .
 ObjectEntryList = ObjectEntry { "," ObjectEntry } .
