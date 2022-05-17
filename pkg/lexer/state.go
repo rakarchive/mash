@@ -468,7 +468,7 @@ func (l *lexer) lexInterpretedString() {
 }
 
 func (l *lexer) lexEmbeddedString() {
-	l.emit(token.TemplateStart) // starting "'"
+	l.emit(token.Template) // starting "'"
 
 	for {
 		switch r := l.peek(); r {
@@ -483,7 +483,7 @@ func (l *lexer) lexEmbeddedString() {
 
 			// ending "'"
 			l.consume()
-			l.emit(token.TemplateStart)
+			l.emit(token.Template)
 
 			return
 

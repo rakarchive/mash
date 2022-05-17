@@ -77,11 +77,11 @@ const (
 	LessThanEqual    // <=
 	GreaterThanEqual // >=
 
-	LeftParen     // (
-	LeftBrack     // [
-	LeftBrace     // {
-	TemplateStart // '
-	Comma         // ,
+	LeftParen // (
+	LeftBrack // [
+	LeftBrace // {
+	Template  // '
+	Comma     // ,
 
 	RightParen // )
 	RightBrack // ]
@@ -156,11 +156,11 @@ var tokens = [...]string{
 	GreaterThanEqual: ">=",
 	Define:           ":=",
 
-	LeftParen:     "(",
-	LeftBrack:     "[",
-	LeftBrace:     "{",
-	TemplateStart: "'",
-	Comma:         ",",
+	LeftParen: "(",
+	LeftBrack: "[",
+	LeftBrace: "{",
+	Template:  "'",
+	Comma:     ",",
 
 	RightParen: ")",
 	RightBrack: "]",
