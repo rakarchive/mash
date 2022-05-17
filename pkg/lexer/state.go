@@ -167,8 +167,8 @@ func (l *lexer) lexNum() {
 	base := 10 // number base
 
 	// 0b, 0o, or 0x base specs
+	var ok bool
 	if l.ch == '0' {
-		var ok bool
 		if base, ok = baseOf(l.peek()); ok {
 			l.consume()
 		}
@@ -178,7 +178,7 @@ func (l *lexer) lexNum() {
 		}
 	}
 
-	l.lexDigits(base)
+	l.lexDigits(base, ok)
 
 	if base <= 8 {
 		goto tokenize
@@ -186,7 +186,7 @@ func (l *lexer) lexNum() {
 
 	if l.peek() == '.' {
 		l.consume()
-		l.lexDigits(base)
+		l.lexDigits(base, true)
 	}
 
 	if isExponent(l.peek(), base) {
@@ -197,7 +197,7 @@ func (l *lexer) lexNum() {
 			l.consume()
 		}
 
-		l.lexDigits(10)
+		l.lexDigits(10, true)
 	}
 
 tokenize:
@@ -228,9 +228,12 @@ func isExponent(r rune, base int) bool {
 	}
 }
 
-func (l *lexer) lexDigits(base int) {
+func (l *lexer) lexDigits(base int, required bool) {
 	if !isBaseDigit(l.peek(), base) {
-		l.error(fmt.Errorf("invalid number literal"))
+		if required {
+			l.error(fmt.Errorf("invalid number literal"))
+		}
+
 		return
 	}
 
