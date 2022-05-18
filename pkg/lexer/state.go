@@ -340,6 +340,8 @@ func (l *lexer) lexStmtOp() token.Type {
 		t = token.LeftBrack
 	case ',':
 		t = token.Comma
+	case '.':
+		t = token.Period
 	case ')':
 		t = token.RightParen
 	case ']':

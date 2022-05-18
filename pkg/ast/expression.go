@@ -72,6 +72,15 @@ func (g *GetExpression) Node()       {}
 func (g *GetExpression) Expression() {}
 func (g *GetExpression) Assignable() {}
 
+type SelectorExpression struct {
+	Name  Expression
+	Index token.Token
+}
+
+func (s *SelectorExpression) Node()       {}
+func (s *SelectorExpression) Expression() {}
+func (s *SelectorExpression) Assignable() {}
+
 type VariableExpression struct {
 	Name token.Token
 }

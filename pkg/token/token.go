@@ -82,6 +82,7 @@ const (
 	LeftBrace // {
 	Template  // '
 	Comma     // ,
+	Period    // .
 
 	RightParen // )
 	RightBrack // ]
@@ -161,6 +162,7 @@ var tokens = [...]string{
 	LeftBrace: "{",
 	Template:  "'",
 	Comma:     ",",
+	Period:    ".",
 
 	RightParen: ")",
 	RightBrack: "]",

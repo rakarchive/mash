@@ -200,25 +200,39 @@ func (p *parser) parsePrimaryExpression() (ast.Expression, error) {
 	}
 
 	for {
+		var parseFunc func(ast.Expression) (ast.Expression, error)
+
 		switch p.pTok {
+		case token.Period:
+			parseFunc = p.parseSelector
 		case token.LeftBrack:
-			index, err := p.parseIndex(expr)
-			if err != nil {
-				return nil, err
-			}
-
-			expr = index
+			parseFunc = p.parseIndex
 		case token.LeftParen:
-			call, err := p.parseArguments(expr)
-			if err != nil {
-				return nil, err
-			}
-
-			expr = call
+			parseFunc = p.parseArguments
 		default:
 			return expr, nil
 		}
+
+		new, err := parseFunc(expr)
+		if err != nil {
+			return nil, err
+		}
+
+		expr = new
 	}
+}
+
+// Selector  = "." identifier .
+func (p *parser) parseSelector(expr ast.Expression) (ast.Expression, error) {
+	p.match(token.Period)
+	if !p.match(token.Identifier) {
+		return nil, fmt.Errorf("exprected identifier, received %s", p.pTok)
+	}
+
+	return &ast.SelectorExpression{
+		Name:  expr,
+		Index: p.current(),
+	}, nil
 }
 
 // Index = "[" Expression "]" .
