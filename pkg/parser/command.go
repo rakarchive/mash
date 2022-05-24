@@ -112,7 +112,7 @@ func (p *parser) parsePipeCommand() (ast.Command, error) {
 
 // PrimaryCommand = command_arg { command_arg } .
 func (p *parser) parsePrimaryCommand() (ast.Command, error) {
-	if !p.match(token.String) {
+	if !p.check(token.String, token.Template) {
 		return nil, fmt.Errorf("unexpected token %s", p.pTok)
 	}
 
@@ -124,12 +124,12 @@ componentLoop:
 
 		switch p.pTok {
 		case token.String:
-			expr, err := p.parseBasicLit()
-			if err != nil {
-				return nil, err
-			}
+			p.next()
 
-			component = expr.(*ast.StringLiteral)
+			component = &ast.StringLiteral{
+				Token: p.current(),
+				Value: p.lit,
+			}
 		case token.Template:
 			template, err := p.parseTemplateLit()
 			if err != nil {
@@ -145,7 +145,6 @@ componentLoop:
 	}
 
 	return &ast.LiteralCommand{
-		Cmd:  components[0],
-		Args: components[1:],
+		Components: components,
 	}, nil
 }

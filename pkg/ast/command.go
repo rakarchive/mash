@@ -39,8 +39,7 @@ func (b *BinaryCommand) Node()    {}
 func (b *BinaryCommand) Command() {}
 
 type LiteralCommand struct {
-	Cmd  CommandComponent
-	Args []CommandComponent
+	Components []CommandComponent
 }
 
 func (l *LiteralCommand) Node()    {}
