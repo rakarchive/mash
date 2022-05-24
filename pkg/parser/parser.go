@@ -59,18 +59,22 @@ func (p *parser) current() token.Token {
 }
 
 func (p *parser) match(tokens ...token.Type) bool {
-	for _, tok := range tokens {
-		if p.check(tok) {
-			p.next()
-			return true
-		}
+	if p.check(tokens...) {
+		p.next()
+		return true
 	}
 
 	return false
 }
 
-func (p *parser) check(tok token.Type) bool {
-	return tok == p.pTok
+func (p *parser) check(tokens ...token.Type) bool {
+	for _, tok := range tokens {
+		if tok == p.pTok {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (p *parser) atEnd() bool {
