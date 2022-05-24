@@ -115,4 +115,4 @@ AndCommand = NotCommand { "&&" AndCommand } .
 NotCommand = [ "!" ] PipeCommand .
 PipeCommand = PrimaryCommand { "|" PipeCommand } .
 PrimaryCommand = CommandComponent { CommandComponent } .
-CommandComponent = string | embedded_string_val | TemplateLit .
+CommandComponent = string | TemplateLit .
