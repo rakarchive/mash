@@ -226,7 +226,7 @@ func (p *parser) parsePrimaryExpression() (ast.Expression, error) {
 func (p *parser) parseSelector(expr ast.Expression) (ast.Expression, error) {
 	p.match(token.Period)
 	if !p.match(token.Identifier) {
-		return nil, fmt.Errorf("exprected identifier, received %s", p.pTok)
+		return nil, fmt.Errorf("expected identifier, received %s", p.pTok)
 	}
 
 	return &ast.SelectorExpression{
@@ -283,7 +283,7 @@ func (p *parser) parseOperand() (ast.Expression, error) {
 		}
 
 		if !p.match(token.RightParen) {
-			return nil, fmt.Errorf("exprected ')', received %s", p.pTok)
+			return nil, fmt.Errorf("expected ')', received %s", p.pTok)
 		}
 
 		return expr, nil
@@ -364,7 +364,7 @@ func (p *parser) parseObjectLit() (*ast.ObjectLiteral, error) {
 	obj := p.current()
 
 	if !p.match(token.LeftBrack) {
-		return nil, fmt.Errorf("exprected '[', received %s", p.pTok)
+		return nil, fmt.Errorf("expected '[', received %s", p.pTok)
 	}
 
 	elements := make(map[ast.Expression]ast.Expression)
@@ -391,7 +391,7 @@ func (p *parser) parseObjectLit() (*ast.ObjectLiteral, error) {
 	}
 
 	if !p.match(token.RightBrack) {
-		return nil, fmt.Errorf("exprected ']', received %s", p.pTok)
+		return nil, fmt.Errorf("expected ']', received %s", p.pTok)
 	}
 
 	return &ast.ObjectLiteral{
@@ -467,7 +467,7 @@ func (p *parser) parseExpressionList(eol token.Type) ([]ast.Expression, error) {
 	}
 
 	if !p.match(eol) {
-		return nil, fmt.Errorf("exprected %s, received EOF", eol)
+		return nil, fmt.Errorf("expected %s, received EOF", eol)
 	}
 
 	return list, nil
