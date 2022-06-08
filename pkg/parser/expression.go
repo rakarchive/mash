@@ -1,3 +1,16 @@
+// Copyright © 2022 Rak Laptudirm <raklaptudirm@gmail.com>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package parser
 
 import (
@@ -8,13 +21,14 @@ import (
 	"laptudirm.com/x/mash/pkg/token"
 )
 
-func (p *parser) parseExprAssign() (ast.Expression, error) {
+// AssignExpression = Assignable assign_op Expression .
+func (p *parser) parseAssignExpression() (ast.Expression, error) {
 	expr, err := p.parseExpression()
 	if err != nil {
 		return nil, err
 	}
 
-	if p.match(token.DEFINE, token.ASSIGN, token.ADD_ASSIGN, token.ADD_ASSIGN, token.MUL_ASSIGN, token.QUO_ASSIGN, token.REM_ASSIGN, token.AND_ASSIGN, token.OR_ASSIGN, token.XOR_ASSIGN, token.SHL_ASSIGN, token.SHR_ASSIGN, token.AND_NOT_ASSIGN) {
+	if p.match(token.Define, token.Assign, token.AdditionAssign, token.AdditionAssign, token.MultiplicationAssign, token.QuotientAssign, token.RemainderAssign, token.AndAssign, token.OrAssign, token.XorAssign, token.ShiftLeftAssign, token.ShiftRightAssign, token.AndNotAssign) {
 		if target, ok := expr.(ast.Assignable); ok {
 			tok := p.current()
 			right, err := p.parseExpression()
@@ -35,19 +49,21 @@ func (p *parser) parseExprAssign() (ast.Expression, error) {
 	return expr, nil
 }
 
+// Expression = OrExpression .
 func (p *parser) parseExpression() (ast.Expression, error) {
-	return p.parseExprPrec1()
+	return p.parseOrExpression()
 }
 
-func (p *parser) parseExprPrec1() (ast.Expression, error) {
-	expr, err := p.parseExprPrec2()
+// OrExpression = AndExpression { "||" OrExpression } .
+func (p *parser) parseOrExpression() (ast.Expression, error) {
+	expr, err := p.parseAndExpression()
 	if err != nil {
 		return nil, err
 	}
 
-	for p.match(token.LOR) {
+	for p.match(token.LogicalOr) {
 		tok := p.current()
-		right, err := p.parseExprPrec2()
+		right, err := p.parseAndExpression()
 		if err != nil {
 			return nil, err
 		}
@@ -62,15 +78,16 @@ func (p *parser) parseExprPrec1() (ast.Expression, error) {
 	return expr, nil
 }
 
-func (p *parser) parseExprPrec2() (ast.Expression, error) {
-	expr, err := p.parseExprPrec3()
+// AndExpression = RelExpression { "&&" AndExpression } .
+func (p *parser) parseAndExpression() (ast.Expression, error) {
+	expr, err := p.parseRelExpression()
 	if err != nil {
 		return nil, err
 	}
 
-	for p.match(token.LAND) {
+	for p.match(token.LogicalAnd) {
 		tok := p.current()
-		right, err := p.parseExprPrec3()
+		right, err := p.parseRelExpression()
 		if err != nil {
 			return nil, err
 		}
@@ -85,15 +102,16 @@ func (p *parser) parseExprPrec2() (ast.Expression, error) {
 	return expr, nil
 }
 
-func (p *parser) parseExprPrec3() (ast.Expression, error) {
-	expr, err := p.parseExprPrec4()
+// RelExpression = AddExpression { rel_op RelExpression } .
+func (p *parser) parseRelExpression() (ast.Expression, error) {
+	expr, err := p.parseAddExpression()
 	if err != nil {
 		return nil, err
 	}
 
-	for p.match(token.EQL, token.NEQ, token.LSS, token.LEQ, token.GTR, token.GEQ) {
+	for p.match(token.Equal, token.NotEqual, token.LessThan, token.LessThanEqual, token.GreaterThan, token.GreaterThanEqual) {
 		tok := p.current()
-		right, err := p.parseExprPrec4()
+		right, err := p.parseAddExpression()
 		if err != nil {
 			return nil, err
 		}
@@ -108,15 +126,16 @@ func (p *parser) parseExprPrec3() (ast.Expression, error) {
 	return expr, nil
 }
 
-func (p *parser) parseExprPrec4() (ast.Expression, error) {
-	expr, err := p.parseExprPrec5()
+// AddExpression = MulExpression { add_op AddExpression } .
+func (p *parser) parseAddExpression() (ast.Expression, error) {
+	expr, err := p.parseMulExpression()
 	if err != nil {
 		return nil, err
 	}
 
-	for p.match(token.ADD, token.SUB, token.OR, token.XOR) {
+	for p.match(token.Addition, token.Subtraction, token.Or, token.Xor) {
 		tok := p.current()
-		right, err := p.parseExprPrec5()
+		right, err := p.parseMulExpression()
 		if err != nil {
 			return nil, err
 		}
@@ -131,15 +150,16 @@ func (p *parser) parseExprPrec4() (ast.Expression, error) {
 	return expr, nil
 }
 
-func (p *parser) parseExprPrec5() (ast.Expression, error) {
-	expr, err := p.parseExprUnary()
+// MulExpression = UnaryExpression { mul_op MulExpression } .
+func (p *parser) parseMulExpression() (ast.Expression, error) {
+	expr, err := p.parseUnaryExpression()
 	if err != nil {
 		return nil, err
 	}
 
-	for p.match(token.MUL, token.QUO, token.REM, token.SHL, token.SHR, token.AND, token.AND_NOT) {
+	for p.match(token.Multiplication, token.Quotient, token.Remainder, token.ShiftLeft, token.ShiftRight, token.And, token.AndNot) {
 		tok := p.current()
-		right, err := p.parseExprUnary()
+		right, err := p.parseUnaryExpression()
 		if err != nil {
 			return nil, err
 		}
@@ -154,10 +174,11 @@ func (p *parser) parseExprPrec5() (ast.Expression, error) {
 	return expr, nil
 }
 
-func (p *parser) parseExprUnary() (ast.Expression, error) {
-	if p.match(token.ADD, token.SUB, token.XOR, token.NOT) {
+// UnaryExpression = PrimaryExpression | unary_op UnaryExpression .
+func (p *parser) parseUnaryExpression() (ast.Expression, error) {
+	if p.match(token.Addition, token.Subtraction, token.Xor, token.Not) {
 		tok := p.current()
-		right, err := p.parseExprCall()
+		right, err := p.parsePrimaryExpression()
 		if err != nil {
 			return nil, err
 		}
@@ -168,80 +189,135 @@ func (p *parser) parseExprUnary() (ast.Expression, error) {
 		}, nil
 	}
 
-	return p.parseExprCall()
+	return p.parsePrimaryExpression()
 }
 
-func (p *parser) parseExprCall() (ast.Expression, error) {
-	expr, err := p.parseExprLiteral()
+// PrimaryExpression = Operand { Selector | Index | Arguments } .
+func (p *parser) parsePrimaryExpression() (ast.Expression, error) {
+	expr, err := p.parseOperand()
 	if err != nil {
 		return nil, err
 	}
 
 	for {
-		switch {
-		case p.match(token.LBRACK):
-			name, err := p.parseExpression()
-			if err != nil {
-				return nil, err
-			}
+		var parseFunc func(ast.Expression) (ast.Expression, error)
 
-			expr = &ast.GetExpression{
-				Name: name,
-				Expr: expr,
-			}
-
-			if !p.match(token.RBRACK) {
-				return nil, fmt.Errorf("expected '}', received %s", p.pTok)
-			}
-		case p.match(token.LPAREN):
-			args := []ast.Expression{}
-			tok := p.current()
-
-			for !p.match(token.RPAREN) {
-				exp, err := p.parseExpression()
-				if err != nil {
-					return nil, err
-				}
-
-				args = append(args, exp)
-
-				if !p.match(token.COMMA) {
-					if !p.match(token.RPAREN) {
-						return nil, fmt.Errorf("expected ')', received %s", p.pTok)
-					}
-
-					break
-				}
-			}
-
-			expr = &ast.CallExpression{
-				Callee:      expr,
-				Parenthesis: tok,
-				Arguments:   args,
-			}
+		switch p.pTok {
+		case token.Period:
+			parseFunc = p.parseSelector
+		case token.LeftBrack:
+			parseFunc = p.parseIndex
+		case token.LeftParen:
+			parseFunc = p.parseArguments
 		default:
 			return expr, nil
 		}
-	}
-}
 
-func (p *parser) parseExprLiteral() (ast.Expression, error) {
-	switch {
-	case p.match(token.FUNC):
-		block, err := p.parseBlockStmt()
+		new, err := parseFunc(expr)
 		if err != nil {
 			return nil, err
 		}
 
-		return &ast.FunctionLiteral{
-			Token: p.current(),
-			Block: block,
-		}, nil
-	case p.match(token.IDENT):
+		expr = new
+	}
+}
+
+// Selector  = "." identifier .
+func (p *parser) parseSelector(expr ast.Expression) (ast.Expression, error) {
+	p.match(token.Period)
+	if !p.match(token.Identifier) {
+		return nil, fmt.Errorf("expected identifier, received %s", p.pTok)
+	}
+
+	return &ast.SelectorExpression{
+		Name:  expr,
+		Index: p.current(),
+	}, nil
+}
+
+// Index = "[" Expression "]" .
+func (p *parser) parseIndex(expr ast.Expression) (ast.Expression, error) {
+	p.match(token.LeftBrack)
+
+	name, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	if !p.match(token.RightBrack) {
+		return nil, fmt.Errorf("expected '}', received %s", p.pTok)
+	}
+
+	return &ast.GetExpression{
+		Name: name,
+		Expr: expr,
+	}, nil
+}
+
+// Arguments = "(" ExpressionList ")" .
+func (p *parser) parseArguments(expr ast.Expression) (ast.Expression, error) {
+	var args []ast.Expression
+
+	p.match(token.LeftParen)
+	paren := p.current()
+
+	args, err := p.parseExpressionList(token.RightParen)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ast.CallExpression{
+		Callee:      expr,
+		Parenthesis: paren,
+		Arguments:   args,
+	}, nil
+}
+
+// Operand = Literal | "(" Expression ")" .
+func (p *parser) parseOperand() (ast.Expression, error) {
+	switch {
+	case p.match(token.LeftParen):
+		expr, err := p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+
+		if !p.match(token.RightParen) {
+			return nil, fmt.Errorf("expected ')', received %s", p.pTok)
+		}
+
+		return expr, nil
+	default:
+		return p.parseLiteral()
+	}
+}
+
+// Literal = BasicLit | CompositeLit | FunctionLit .
+func (p *parser) parseLiteral() (ast.Expression, error) {
+	switch p.pTok {
+	case token.Identifier, token.Number, token.String:
+		return p.parseBasicLit()
+	case token.LeftBrack:
+		return p.parseArrayLit()
+	case token.Obj:
+		return p.parseObjectLit()
+	case token.Func:
+		return p.parseFunctionLit()
+	case token.Template:
+		return p.parseTemplateLit()
+	default:
+		return nil, fmt.Errorf("invalid literal %s", p.pTok)
+	}
+}
+
+// BasicLit = identifier | number_lit | string_lit .
+func (p *parser) parseBasicLit() (ast.Expression, error) {
+	switch p.next(); p.tok {
+	case token.Identifier:
 		return &ast.VariableExpression{
 			Name: p.current(),
 		}, nil
-	case p.match(token.FLOAT):
+	case token.Number:
 		val, err := strconv.ParseFloat(p.lit, 64)
 		if err != nil {
 			return nil, err
@@ -251,7 +327,7 @@ func (p *parser) parseExprLiteral() (ast.Expression, error) {
 			Token: p.current(),
 			Value: val,
 		}, nil
-	case p.match(token.STRING):
+	case token.String:
 		val, err := strconv.Unquote(p.lit)
 		if err != nil {
 			return nil, err
@@ -261,100 +337,138 @@ func (p *parser) parseExprLiteral() (ast.Expression, error) {
 			Token: p.current(),
 			Value: val,
 		}, nil
-	case p.match(token.OBJ):
-		lit := &ast.ObjectLiteral{
-			Token:    p.current(),
-			Elements: make(map[ast.Expression]ast.Expression),
-		}
+	default:
+		panic("invalid token provided to BasicLit")
+	}
+}
 
-		if !p.match(token.LBRACK) {
-			return nil, fmt.Errorf("expected '[', received %s", p.pTok)
-		}
+// ArrayLit = "[" ExpressionList "]" .
+func (p *parser) parseArrayLit() (*ast.ArrayLiteral, error) {
+	p.match(token.LeftBrack)
+	brack := p.current()
 
-		if p.match(token.RBRACK) {
-			return lit, nil
-		}
+	list, err := p.parseExpressionList(token.RightBrack)
+	if err != nil {
+		return nil, err
+	}
 
-		for {
-			index, err := p.parseExpression()
-			if err != nil {
-				return nil, err
-			}
+	return &ast.ArrayLiteral{
+		Token:    brack,
+		Elements: list,
+	}, nil
+}
 
-			if !p.match(token.COLON) {
-				return nil, fmt.Errorf("expected ':', received %s", p.pTok)
-			}
+// ObjectLit = "obj" "[" ObjectEntryList [ "," ] "]" .
+func (p *parser) parseObjectLit() (*ast.ObjectLiteral, error) {
+	p.match(token.Obj)
+	obj := p.current()
 
-			lit.Elements[index], err = p.parseExpression()
-			if err != nil {
-				return nil, err
-			}
+	if !p.match(token.LeftBrack) {
+		return nil, fmt.Errorf("expected '[', received %s", p.pTok)
+	}
 
-			if p.match(token.COMMA) {
-				if p.match(token.RBRACK) {
-					break
-				}
-
-				continue
-			}
-
-			if !p.match(token.RBRACK) {
-				return nil, fmt.Errorf("expected ']', received %s", p.pTok)
-			}
-
-			break
-		}
-
-		return lit, nil
-	case p.match(token.LBRACK):
-		lit := &ast.ArrayLiteral{
-			Token:    p.current(),
-			Elements: []ast.Expression{},
-		}
-
-		if p.match(token.RBRACK) {
-			return lit, nil
-		}
-
-		for {
-			exp, err := p.parseExpression()
-			if err != nil {
-				return nil, err
-			}
-
-			lit.Elements = append(lit.Elements, exp)
-
-			if p.match(token.COMMA) {
-				if p.match(token.RBRACK) {
-					break
-				}
-
-				continue
-			}
-
-			if !p.match(token.RBRACK) {
-				return nil, fmt.Errorf("expected ']', received %s", p.pTok)
-			}
-			break
-		}
-
-		return lit, nil
-	case p.match(token.LPAREN):
-		right, err := p.parseExpression()
+	elements := make(map[ast.Expression]ast.Expression)
+	for !p.check(token.RightBrack) && !p.atEnd() {
+		key, err := p.parseExpression()
 		if err != nil {
 			return nil, err
 		}
 
-		group := &ast.GroupExpression{
-			Right: right,
+		if !p.match(token.Colon) {
+			return nil, fmt.Errorf("expected ':', received %s", p.pTok)
 		}
 
-		if !p.match(token.RPAREN) {
-			return nil, fmt.Errorf("expected ')', received %s", p.pTok)
+		value, err := p.parseExpression()
+		if err != nil {
+			return nil, err
 		}
 
-		return group, nil
-	default:
-		return nil, fmt.Errorf("invalid literal start %s", p.pTok)
+		elements[key] = value
+
+		if !p.match(token.Comma) && !p.check(token.RightBrack) {
+			return nil, fmt.Errorf("expected ']', received %s", p.pTok)
+		}
 	}
+
+	if !p.match(token.RightBrack) {
+		return nil, fmt.Errorf("expected ']', received %s", p.pTok)
+	}
+
+	return &ast.ObjectLiteral{
+		Token:    obj,
+		Elements: elements,
+	}, nil
+}
+
+// FunctionLit = "func" Block .
+func (p *parser) parseFunctionLit() (*ast.FunctionLiteral, error) {
+	p.match(token.Func)
+	tok := p.current()
+
+	block, err := p.parseBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	return &ast.FunctionLiteral{
+		Token: tok,
+		Block: block,
+	}, nil
+}
+
+// TemplateLit = "'" _embedded_string_val "'" .
+func (p *parser) parseTemplateLit() (*ast.TemplateLiteral, error) {
+	p.match(token.Template)
+
+	var components []token.Token
+	var expressions []ast.Expression
+
+	for {
+		p.match(token.String)
+		components = append(components, p.current())
+
+		if p.match(token.Template) {
+			break
+		}
+
+		p.match(token.LeftBrace)
+
+		expr, err := p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+
+		expressions = append(expressions, expr)
+
+		p.match(token.RightBrace)
+	}
+
+	return &ast.TemplateLiteral{
+		Expressions: expressions,
+		Components:  components,
+	}, nil
+}
+
+// ExpressionList = Expression { "," Expression } .
+func (p *parser) parseExpressionList(eol token.Type) ([]ast.Expression, error) {
+	var list []ast.Expression
+
+	for !p.check(eol) && !p.atEnd() {
+		expr, err := p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+
+		list = append(list, expr)
+
+		if !p.match(token.Comma) && !p.check(eol) {
+			return nil, fmt.Errorf("expected %s, received %s", eol, p.pTok)
+		}
+	}
+
+	if !p.match(eol) {
+		return nil, fmt.Errorf("expected %s, received EOF", eol)
+	}
+
+	return list, nil
 }

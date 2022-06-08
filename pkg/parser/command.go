@@ -1,3 +1,16 @@
+// Copyright © 2022 Rak Laptudirm <raklaptudirm@gmail.com>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package parser
 
 import (
@@ -7,19 +20,16 @@ import (
 	"laptudirm.com/x/mash/pkg/token"
 )
 
-func (p *parser) parseCommand() (ast.Command, error) {
-	return p.parseCmdLor()
-}
-
-func (p *parser) parseCmdLor() (ast.Command, error) {
-	expr, err := p.parseCmdAnd()
+// OrCommand = AndCommand { "||" OrCommand } .
+func (p *parser) parseOrCommand() (ast.Command, error) {
+	expr, err := p.parseAndCommand()
 	if err != nil {
 		return nil, err
 	}
 
-	for p.match(token.LOR) {
+	for p.match(token.LogicalOr) {
 		tok := p.current()
-		right, err := p.parseCmdAnd()
+		right, err := p.parseAndCommand()
 		if err != nil {
 			return nil, err
 		}
@@ -34,15 +44,16 @@ func (p *parser) parseCmdLor() (ast.Command, error) {
 	return expr, nil
 }
 
-func (p *parser) parseCmdAnd() (ast.Command, error) {
-	expr, err := p.parseCmdNot()
+// AndCommand = NotCommand { "&&" AndCommand } .
+func (p *parser) parseAndCommand() (ast.Command, error) {
+	expr, err := p.parseNotCommand()
 	if err != nil {
 		return nil, err
 	}
 
-	for p.match(token.LAND) {
+	for p.match(token.LogicalAnd) {
 		tok := p.current()
-		right, err := p.parseCmdNot()
+		right, err := p.parseNotCommand()
 		if err != nil {
 			return nil, err
 		}
@@ -57,10 +68,11 @@ func (p *parser) parseCmdAnd() (ast.Command, error) {
 	return expr, nil
 }
 
-func (p *parser) parseCmdNot() (ast.Command, error) {
-	if p.match(token.NOT) {
+// NotCommand = [ "!" ] PipeCommand .
+func (p *parser) parseNotCommand() (ast.Command, error) {
+	if p.match(token.Not) {
 		tok := p.current()
-		right, err := p.parseCmdPipe()
+		right, err := p.parsePipeCommand()
 		if err != nil {
 			return nil, err
 		}
@@ -71,18 +83,19 @@ func (p *parser) parseCmdNot() (ast.Command, error) {
 		}, nil
 	}
 
-	return p.parseCmdPipe()
+	return p.parsePipeCommand()
 }
 
-func (p *parser) parseCmdPipe() (ast.Command, error) {
-	expr, err := p.parseCmdLit()
+// PipeCommand = PrimaryCommand { "|" PipeCommand } .
+func (p *parser) parsePipeCommand() (ast.Command, error) {
+	expr, err := p.parsePrimaryCommand()
 	if err != nil {
 		return nil, err
 	}
 
-	for p.match(token.OR) {
+	for p.match(token.Or) {
 		tok := p.current()
-		right, err := p.parseCmdLit()
+		right, err := p.parsePrimaryCommand()
 		if err != nil {
 			return nil, err
 		}
@@ -97,18 +110,41 @@ func (p *parser) parseCmdPipe() (ast.Command, error) {
 	return expr, nil
 }
 
-func (p *parser) parseCmdLit() (ast.Command, error) {
-	if !p.match(token.STRING) {
+// PrimaryCommand = command_arg { command_arg } .
+func (p *parser) parsePrimaryCommand() (ast.Command, error) {
+	if !p.check(token.String, token.Template) {
 		return nil, fmt.Errorf("unexpected token %s", p.pTok)
 	}
 
-	lit := &ast.LiteralCommand{
-		Cmd: p.current(),
+	var components []ast.CommandComponent
+
+componentLoop:
+	for {
+		var component ast.CommandComponent
+
+		switch p.pTok {
+		case token.String:
+			p.next()
+
+			component = &ast.StringLiteral{
+				Token: p.current(),
+				Value: p.lit,
+			}
+		case token.Template:
+			template, err := p.parseTemplateLit()
+			if err != nil {
+				return nil, err
+			}
+
+			component = template
+		default:
+			break componentLoop
+		}
+
+		components = append(components, component)
 	}
 
-	for p.match(token.STRING) {
-		lit.Args = append(lit.Args, p.current())
-	}
-
-	return lit, nil
+	return &ast.LiteralCommand{
+		Components: components,
+	}, nil
 }

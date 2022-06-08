@@ -1,0 +1,118 @@
+// Copyright © 2022 Rak Laptudirm <raklaptudirm@gmail.com>
+// The Mash Syntax Specification
+//
+// Syntax is specified using the mdg formal grammar, which is a dialect of
+// the standard ebnf. The specification of mdg is also given below.
+//
+// |  alternation
+// () grouping
+// [] option (0 or 1 times)
+// {} repitition (0 to n times)
+//
+// Productions names starting with an underscore(_) represent utility
+// lexical productions. Names starting with a lower-case letters represents
+// lexical tokens. Names starting with upper-case letters represent
+// productions involving lexical tokens.
+
+Program = StatementList .
+
+_newline        = /* the Unicode code point U+000A */ .
+_unicode_char   = /* any Unicode character except newline */ .
+_unicode_letter = /* a Unicode code point with gc=L */ .
+_unicode_digit  = /* a Unicode code point with gc=Nd */ .
+
+_letter        = _unicode_letter | "_" .
+_decimal_digit = "0" … "9" .
+_binary_digit  = "0" | "1" .
+_octal_digit   = "0" … "7" .
+_hex_digit     = "0" … "9" | "A" … "F" | "a" … "f" .
+
+identifier = _letter { _letter | _unicode_digit } .
+
+number_lit  = _binary_lit | _octal_lit | _decimal_lit | _hex_lit .
+_decimal_lit = _decimal_digits [ _decimal_fraction ] [ _decimal_exponent ] .
+_binary_lit  = "0" ( "b" | "B" ) [ "_" ] _binary_digits .
+_octal_lit   = "0" [ "o" | "O" ] [ "_" ] _octal_digits .
+_hex_lit     = "0" ( "x" | "X" ) [ "_" ] _hex_digits [ _hex_fraction ] [ _hex_exponent ] .
+
+_decimal_digits = _decimal_digit { [ "_" ] _decimal_digit } .
+_binary_digits  = _binary_digit { [ "_" ] _binary_digit } .
+_octal_digits   = _octal_digit { [ "_" ] _octal_digit } .
+_hex_digits     = _hex_digit { [ "_" ] _hex_digit } .
+
+_decimal_fraction = "." _decimal_digits .
+_hex_fraction     = "." _hex_digits .
+
+_decimal_exponent  = ( "e" | "E" ) [ "+" | "-" ] _decimal_digits .
+_hex_exponent      = ( "p" | "P" ) [ "+" | "-" ] _decimal_digits .
+
+string_lit             = raw_string_lit | interpreted_string_lit .
+raw_string_lit         = "`" { _unicode_char | _newline } "`" .
+interpreted_string_lit = `"` _interpreted_string_val `"` .
+_interpreted_string_val = { _interpreted_escape_char | _escapes  } .
+_embedded_string_val    = { _embedded_escape_char | _escapes | _embedded_expression } .
+
+_escapes = _unicode_value | _byte_value
+
+_interpreted_escape_char = `\` ( _common_escape_char | `"` ) .
+_embedded_escape_char    = `\` ( _common_escape_char | "'" | "{" ) .
+_common_escape_char      = "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` .
+
+_unicode_value       = _little_u_value | _big _u_value | _unicode_char .
+_byte_value          = _octal_byte_value | _hex_byte_value .
+_embedded_expression = "{" Expression "}" .
+_octal_byte_value    = `\` _octal_digit _octal_digit _octal_digit .
+_hex_byte_value      = `\` "x" _hex_digit _hex_digit .
+_little_u_value      = `\` "u" _hex_digit _hex_digit _hex_digit _hex_digit .
+_big_u_value         = `\` "U" _hex_digit _hex_digit _hex_digit _hex_digit
+                               _hex_digit _hex_digit _hex_digit _hex_digit .
+
+assign_op = [ add_op | mul_op | ":" ] "=" .
+rel_op = "==" | "!=" | "<" | "<=" | ">" | ">=" .
+add_op = "+" | "-" | "|" | "^" .
+mul_op = "*" | "/" | "%" | "<<" | ">>" | "&" | "&^" .
+unary_op = "+" | "-" | "!" | "^" .
+
+Block = "{" StatementList "}" .
+StatementList = { Statement } .
+
+Statement = ( LetStatement | ForStatement | IfStatement | Block | CommandStatement ) ";" .
+
+LetStatement = "let" AssignExpression .
+ForStatement = "for" [ Expression ] Block .
+IfStatement  = "if" Expression Block [ "else" ( IfStatement | Block ) ] .
+
+AssignExpression = Assignable assign_op Expression .
+
+Expression        = OrExpression .
+OrExpression      = AndExpression { "||" OrExpression } .
+AndExpression     = RelExpression { "&&" AndExpression } .
+RelExpression     = AddExpression { rel_op RelExpression } .
+AddExpression     = MulExpression { add_op AddExpression } .
+MulExpression     = UnaryExpression { mul_op MulExpression } .
+UnaryExpression   = PrimaryExpression | unary_op UnaryExpression .
+PrimaryExpression = Operand { Selector | Index | Arguments } .
+
+Selector  = "." identifier .
+Index     = "[" Expression "]" .
+Arguments = "(" ExpressionList ")" .
+
+Operand = Literal | "(" Expression ")" .
+Literal = BasicLit | ArrayLit | ObjectLit | FunctionLit | TemplateLit .
+
+BasicLit        = identifier | number_lit | string_lit .
+FunctionLit     = "func" Block .
+TemplateLit     = "'" _embedded_string_val "'" .
+ArrayLit        = "[" ExpressionList "]" .
+ObjectLit       = "obj" "[" ObjectEntryList [ "," ] "]" .
+ObjectEntryList = ObjectEntry { "," ObjectEntry } .
+ExpressionList  = [ Expression { "," Expression } [ "," ] ] .
+ObjectEntry     = Expression ":" Expression .
+
+CommandStatement = OrCommand .
+OrCommand = AndCommand { "||" OrCommand } .
+AndCommand = NotCommand { "&&" AndCommand } .
+NotCommand = [ "!" ] PipeCommand .
+PipeCommand = PrimaryCommand { "|" PipeCommand } .
+PrimaryCommand = CommandComponent { CommandComponent } .
+CommandComponent = string | TemplateLit .

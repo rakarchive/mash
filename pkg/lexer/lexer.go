@@ -1,4 +1,4 @@
-// Copyright © 2021 Rak Laptudirm <raklaptudirm@gmail.com>
+// Copyright © 2022 Rak Laptudirm <raklaptudirm@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ func Lex(src string, err ErrorHandler) TokenStream {
 // emit emits a token of type t with the current position and literal to
 // the lexer's token channel. It also resets the lexer position and offset
 // variables.
-func (l *lexer) emit(t token.TokenType) {
+func (l *lexer) emit(t token.Type) {
 	l.Tokens <- token.Token{
 		Type:     t,
 		Literal:  l.literal(),

@@ -1,3 +1,16 @@
+// Copyright © 2022 Rak Laptudirm <raklaptudirm@gmail.com>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package parser
 
 import (
@@ -10,12 +23,12 @@ type parser struct {
 	tokens lexer.TokenStream
 
 	// next "peek" token
-	pTok token.TokenType
+	pTok token.Type
 	pPos token.Position
 	pLit string
 
 	// current token
-	tok token.TokenType
+	tok token.Type
 	pos token.Position
 	lit string
 
@@ -24,7 +37,7 @@ type parser struct {
 	ErrorCount int
 }
 
-func Parse(t lexer.TokenStream, e lexer.ErrorHandler) (*ast.Program, error) {
+func Parse(t lexer.TokenStream, e lexer.ErrorHandler) *ast.Program {
 	p := parser{
 		tokens:     t,
 		err:        e,
@@ -45,10 +58,18 @@ func (p *parser) current() token.Token {
 	}
 }
 
-func (p *parser) match(tokens ...token.TokenType) bool {
+func (p *parser) match(tokens ...token.Type) bool {
+	if p.check(tokens...) {
+		p.next()
+		return true
+	}
+
+	return false
+}
+
+func (p *parser) check(tokens ...token.Type) bool {
 	for _, tok := range tokens {
-		if p.check(tok) {
-			p.next()
+		if tok == p.pTok {
 			return true
 		}
 	}
@@ -56,12 +77,8 @@ func (p *parser) match(tokens ...token.TokenType) bool {
 	return false
 }
 
-func (p *parser) check(tok token.TokenType) bool {
-	return tok == p.pTok
-}
-
 func (p *parser) atEnd() bool {
-	return p.pTok == token.EOF
+	return p.pTok == token.Eof
 }
 
 func (p *parser) next() {
@@ -71,7 +88,7 @@ func (p *parser) next() {
 	p.pos = p.pPos
 	p.lit = p.pLit
 
-	for tok.Type == token.COMMENT {
+	for tok.Type == token.Comment {
 		tok = <-p.tokens
 	}
 
@@ -93,13 +110,13 @@ func (p *parser) synchronize() {
 
 	for !p.atEnd() {
 		// semicolon ends statements, so current token is statement start
-		if p.tok == token.SEMICOLON {
+		if p.tok == token.Semicolon {
 			return
 		}
 
 		switch p.pTok {
 		// check for tokens which start a statement
-		case token.FOR, token.IF, token.LET, token.BREAK, token.CONTINUE, token.RETURN:
+		case token.For, token.If, token.Let, token.Break, token.Continue, token.Return:
 			return
 		default:
 			p.next()

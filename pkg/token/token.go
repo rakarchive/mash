@@ -1,4 +1,4 @@
-// Copyright © 2021 Rak Laptudirm <raklaptudirm@gmail.com>
+// Copyright © 2022 Rak Laptudirm <raklaptudirm@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,178 +18,179 @@ import (
 	"unicode"
 )
 
-// TokenType represents the type of a token which will be emitted by the
-// lexer.
-type TokenType int
+// Type represents the type of a token which will be emitted by the lexer.
+type Type int
 
 // Various types of tokens emitted by the lexer.
 const (
 	// Special tokens
-	ILLEGAL TokenType = iota
-	EOF
-	COMMENT
+	Illegal Type = iota
+	Eof
+	Comment
 
-	literal_beg
+	literalBeg
 	// Identifiers and basic type literals
-	IDENT  // main
-	FLOAT  // 3.14
-	STRING // "abc"
-	literal_end
+	Identifier // main
+	Number     // 3.14
+	String     // "abc"
+	literalEnd
 
-	operator_beg
+	operatorBeg
 	// Operators and delimiters
-	ADD // +
-	SUB // -
-	MUL // *
-	QUO // /
-	REM // %
+	Addition       // +
+	Subtraction    // -
+	Multiplication // *
+	Quotient       // /
+	Remainder      // %
 
-	AND     // &
-	OR      // |
-	XOR     // ^
-	SHL     // <<
-	SHR     // >>
-	AND_NOT // &^
+	And        // &
+	Or         // |
+	Xor        // ^
+	ShiftLeft  // <<
+	ShiftRight // >>
+	AndNot     // &^
 
-	ADD_ASSIGN // +=
-	SUB_ASSIGN // -=
-	MUL_ASSIGN // *=
-	QUO_ASSIGN // /=
-	REM_ASSIGN // %=
+	AdditionAssign       // +=
+	SubtractionAssign    // -=
+	MultiplicationAssign // *=
+	QuotientAssign       // /=
+	RemainderAssign      // %=
 
-	AND_ASSIGN     // &=
-	OR_ASSIGN      // |=
-	XOR_ASSIGN     // ^=
-	SHL_ASSIGN     // <<=
-	SHR_ASSIGN     // >>=
-	AND_NOT_ASSIGN // &^=
+	AndAssign        // &=
+	OrAssign         // |=
+	XorAssign        // ^=
+	ShiftLeftAssign  // <<=
+	ShiftRightAssign // >>=
+	AndNotAssign     // &^=
 
-	LAND // &&
-	LOR  // ||
+	LogicalAnd // &&
+	LogicalOr  // ||
 
-	EQL    // ==
-	LSS    // <
-	GTR    // >
-	ASSIGN // =
-	DEFINE // :=
-	NOT    // !
+	Equal       // ==
+	LessThan    // <
+	GreaterThan // >
+	Assign      // =
+	Define      // :=
+	Not         // !
 
-	NEQ // !=
-	LEQ // <=
-	GEQ // >=
+	NotEqual         // !=
+	LessThanEqual    // <=
+	GreaterThanEqual // >=
 
-	LPAREN // (
-	LBRACK // [
-	LBRACE // {
-	COMMA  // ,
+	LeftParen // (
+	LeftBrack // [
+	LeftBrace // {
+	Template  // '
+	Comma     // ,
+	Period    // .
 
-	RPAREN    // )
-	RBRACK    // ]
-	RBRACE    // }
-	SEMICOLON // ;
-	COLON     // :
-	operator_end
+	RightParen // )
+	RightBrack // ]
+	RightBrace // }
+	Semicolon  // ;
+	Colon      // :
+	operatorEnd
 
-	keyword_beg
+	keywordBeg
 	// Keywords
-	FOR
-	IF
-	ELIF
-	ELSE
+	For
+	If
+	Else
 
-	LET
-	OBJ
-	FUNC
+	Let
+	Obj
+	Func
 
-	BREAK
-	CONTINUE
-	RETURN
-	keyword_end
+	Break
+	Continue
+	Return
+	keywordEnd
 )
 
 var tokens = [...]string{
-	ILLEGAL: "ILLEGAL",
+	Illegal: "ILLEGAL",
 
-	EOF:     "EOF",
-	COMMENT: "COMMENT",
+	Eof:     "EOF",
+	Comment: "COMMENT",
 
-	IDENT:  "IDENT",
-	FLOAT:  "FLOAT",
-	STRING: "STRING",
+	Identifier: "IDENT",
+	Number:     "FLOAT",
+	String:     "STRING",
 
-	ADD: "+",
-	SUB: "-",
-	MUL: "*",
-	QUO: "/",
-	REM: "%",
+	Addition:       "+",
+	Subtraction:    "-",
+	Multiplication: "*",
+	Quotient:       "/",
+	Remainder:      "%",
 
-	AND:     "&",
-	OR:      "|",
-	XOR:     "^",
-	SHL:     "<<",
-	SHR:     ">>",
-	AND_NOT: "&^",
+	And:        "&",
+	Or:         "|",
+	Xor:        "^",
+	ShiftLeft:  "<<",
+	ShiftRight: ">>",
+	AndNot:     "&^",
 
-	ADD_ASSIGN: "+=",
-	SUB_ASSIGN: "-=",
-	MUL_ASSIGN: "*=",
-	QUO_ASSIGN: "/=",
-	REM_ASSIGN: "%=",
+	AdditionAssign:       "+=",
+	SubtractionAssign:    "-=",
+	MultiplicationAssign: "*=",
+	QuotientAssign:       "/=",
+	RemainderAssign:      "%=",
 
-	AND_ASSIGN:     "&=",
-	OR_ASSIGN:      "|=",
-	XOR_ASSIGN:     "^=",
-	SHL_ASSIGN:     "<<=",
-	SHR_ASSIGN:     ">>=",
-	AND_NOT_ASSIGN: "&^=",
+	AndAssign:        "&=",
+	OrAssign:         "|=",
+	XorAssign:        "^=",
+	ShiftLeftAssign:  "<<=",
+	ShiftRightAssign: ">>=",
+	AndNotAssign:     "&^=",
 
-	LAND: "&&",
-	LOR:  "||",
+	LogicalAnd: "&&",
+	LogicalOr:  "||",
 
-	EQL:    "==",
-	LSS:    "<",
-	GTR:    ">",
-	ASSIGN: "=",
-	NOT:    "!",
+	Equal:       "==",
+	LessThan:    "<",
+	GreaterThan: ">",
+	Assign:      "=",
+	Not:         "!",
 
-	NEQ:    "!=",
-	LEQ:    "<=",
-	GEQ:    ">=",
-	DEFINE: ":=",
+	NotEqual:         "!=",
+	LessThanEqual:    "<=",
+	GreaterThanEqual: ">=",
+	Define:           ":=",
 
-	LPAREN: "(",
-	LBRACK: "[",
-	LBRACE: "{",
-	COMMA:  ",",
+	LeftParen: "(",
+	LeftBrack: "[",
+	LeftBrace: "{",
+	Template:  "'",
+	Comma:     ",",
+	Period:    ".",
 
-	RPAREN:    ")",
-	RBRACK:    "]",
-	RBRACE:    "}",
-	SEMICOLON: ";",
-	COLON:     ":",
+	RightParen: ")",
+	RightBrack: "]",
+	RightBrace: "}",
+	Semicolon:  ";",
+	Colon:      ":",
 
-	FOR:  "for",
-	IF:   "if",
-	ELIF: "elif",
-	ELSE: "else",
+	For:  "for",
+	If:   "if",
+	Else: "else",
 
-	LET:  "let",
-	OBJ:  "obj",
-	FUNC: "func",
+	Let:  "let",
+	Obj:  "obj",
+	Func: "func",
 
-	BREAK:    "break",
-	CONTINUE: "continue",
-	RETURN:   "return",
+	Break:    "break",
+	Continue: "continue",
+	Return:   "return",
 }
 
-func token(s string) TokenType {
+func token(s string) Type {
 	for t, val := range tokens {
 		if val == s {
-			return TokenType(t)
+			return Type(t)
 		}
 	}
 
-	return ILLEGAL
+	return Illegal
 }
 
 // String returns the string corresponding to the token tok.
@@ -198,9 +199,9 @@ func token(s string) TokenType {
 // "+"). For all other tokens the string corresponds to the token
 // constant name (e.g. for the token IDENT, the string is "IDENT").
 //
-func (tok TokenType) String() string {
+func (tok Type) String() string {
 	s := ""
-	if 0 <= tok && tok < TokenType(len(tokens)) {
+	if 0 <= tok && tok < Type(len(tokens)) {
 		s = tokens[tok]
 	}
 	if s == "" {
@@ -213,13 +214,13 @@ func (tok TokenType) String() string {
 // should be inserted after a token of type tok. It returns true if
 // a semicolon should be inserted, and false if should not.
 //
-func (tok TokenType) InsertSemi() bool {
+func (tok Type) InsertSemi() bool {
 	if tok.IsLiteral() {
 		return true
 	}
 
 	switch tok {
-	case RPAREN, RBRACK, RBRACE, BREAK, CONTINUE, RETURN:
+	case RightParen, RightBrack, RightBrace, Break, Continue, Return:
 		return true
 	default:
 		return false
@@ -230,31 +231,31 @@ func (tok TokenType) InsertSemi() bool {
 // a valid literal. Literals are tokens of with a value greater than
 // literal_beg but less than literal_end.
 //
-func (tok TokenType) IsLiteral() bool {
-	return literal_beg < tok && tok < literal_end
+func (tok Type) IsLiteral() bool {
+	return literalBeg < tok && tok < literalEnd
 }
 
 // IsOperator returns a boolean depending on wether the type of tok is
 // a valid operator. Operators are tokens of with a value greater than
 // operator_beg but less than operator_end.
 //
-func (tok TokenType) IsOperator() bool {
-	return operator_beg < tok && tok < operator_end
+func (tok Type) IsOperator() bool {
+	return operatorBeg < tok && tok < operatorEnd
 }
 
 // IsKeyword returns a boolean depending on wether the type of tok is
 // a valid keyword. Keywords are tokens of with a value greater than
 // keyword_beg but less than keyword_end.
 //
-func (tok TokenType) IsKeyword() bool {
-	return keyword_beg < tok && tok < keyword_end
+func (tok Type) IsKeyword() bool {
+	return keywordBeg < tok && tok < keywordEnd
 }
 
-var keywords map[string]TokenType
+var keywords map[string]Type
 
 func init() {
-	keywords = make(map[string]TokenType)
-	for i := keyword_beg + 1; i < keyword_end; i++ {
+	keywords = make(map[string]Type)
+	for i := keywordBeg + 1; i < keywordEnd; i++ {
 		keywords[tokens[i]] = i
 	}
 }
@@ -291,17 +292,17 @@ func IsOperator(s string) bool {
 
 // Lookup checks if name is a keyword, and returns the token type of the
 // keyword if it is. Otherwise, it returns IDENT.
-func Lookup(name string) TokenType {
+func Lookup(name string) Type {
 	if tok, ok := keywords[name]; ok {
 		return tok
 	}
 
-	return IDENT
+	return Identifier
 }
 
 // Token represtents a single token which will be emitted by the lexer.
 type Token struct {
-	Type     TokenType // type of the token
-	Literal  string    // literal in source
-	Position Position  // position in source
+	Type     Type     // type of the token
+	Literal  string   // literal in source
+	Position Position // position in source
 }
