@@ -13,6 +13,7 @@
 
 package ast
 
+// Program node represents a mash program.
 type Program struct {
 	Statements []Statement
 }

@@ -11,8 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package ast implements various structures and interfaces which represent
+// the abstract syntax tree of a mash program.
 package ast
 
+// Node interface is implemented by every node of the mash abstract syntax
+// tree.
 type Node interface {
 	Node()
 }

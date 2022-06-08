@@ -15,16 +15,22 @@ package ast
 
 import "laptudirm.com/x/mash/pkg/token"
 
+// Command interface is implemented by the ast nodes which can be used
+// inside a command statement.
 type Command interface {
 	Node
 	Command()
 }
 
+// CommandComponent interface is implemented by the ast nodes which can
+// be used as components inside a primary command.
 type CommandComponent interface {
 	Node
 	CommandComponent()
 }
 
+// LogicalCommand node represents two command nodes joined by a logical
+// operator, like && and ||.
 type LogicalCommand struct {
 	Left     Command
 	Operator token.Token
@@ -34,6 +40,7 @@ type LogicalCommand struct {
 func (l *LogicalCommand) Node()    {}
 func (l *LogicalCommand) Command() {}
 
+// UnaryCommand node represents a command with a unary operator.
 type UnaryCommand struct {
 	Operator token.Token
 	Right    Command
@@ -42,6 +49,8 @@ type UnaryCommand struct {
 func (u *UnaryCommand) Node()    {}
 func (u *UnaryCommand) Command() {}
 
+// BinaryCommand node represents two command nodes joined by a binary
+// operator.
 type BinaryCommand struct {
 	Left     Command
 	Operator token.Token
@@ -51,6 +60,7 @@ type BinaryCommand struct {
 func (b *BinaryCommand) Node()    {}
 func (b *BinaryCommand) Command() {}
 
+// LiteralCommand node represents a primary command.
 type LiteralCommand struct {
 	Components []CommandComponent
 }

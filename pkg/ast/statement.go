@@ -13,11 +13,13 @@
 
 package ast
 
+// Statement is the interface implemented by statement nodes.
 type Statement interface {
 	Node
 	Statement()
 }
 
+// BlockStatement represents a scoped block Statement.
 type BlockStatement struct {
 	Statements []Statement
 }
@@ -25,6 +27,7 @@ type BlockStatement struct {
 func (b *BlockStatement) Node()      {}
 func (b *BlockStatement) Statement() {}
 
+// IfStatements represents  if-else if-else conditional statement.
 type IfStatement struct {
 	Condition Expression
 	BlockStmt *BlockStatement
@@ -34,6 +37,7 @@ type IfStatement struct {
 func (i *IfStatement) Node()      {}
 func (i *IfStatement) Statement() {}
 
+// ForStatement represents a for looping statement.
 type ForStatement struct {
 	Condition Expression
 	BlockStmt *BlockStatement
@@ -42,6 +46,7 @@ type ForStatement struct {
 func (f *ForStatement) Node()      {}
 func (f *ForStatement) Statement() {}
 
+// LetStatement represents a let expression statement.
 type LetStatement struct {
 	Expression Expression
 }
@@ -49,6 +54,7 @@ type LetStatement struct {
 func (l *LetStatement) Node()      {}
 func (l *LetStatement) Statement() {}
 
+// CmdStatement represents a shell command statement.
 type CmdStatement struct {
 	Command Command
 }
